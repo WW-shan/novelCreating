@@ -87,7 +87,7 @@ def writer_node(state: NovelState) -> NovelState:
             print(f"     ⚠️  失败")
             segments.append(f"\n[场景 {i}: {beat}]\n")
 
-    full_draft = f"# 第 {chapter_index} 章\n\n" + "\n\n".join(segments)
+    full_draft = f"第 {chapter_index} 章\n\n" + "\n\n".join(segments)
 
     # 质量检查
     issues = check_quality(full_draft)
@@ -266,7 +266,7 @@ def generate_single_quality(beats, characters, idx, state, tone, focus):
             )
 
             response = llm.invoke([HumanMessage(content=prompt)])
-            draft = f"# 第 {idx} 章\n\n" + response.content.strip()
+            draft = f"第 {idx} 章\n\n" + response.content.strip()
 
             if len(response.content) < 500:
                 if attempt < 2:
@@ -284,7 +284,7 @@ def generate_single_quality(beats, characters, idx, state, tone, focus):
                 print(f"     ⏳ 重试...")
                 time.sleep((attempt + 1) * 5)
 
-    fallback = f"# 第 {idx} 章\n\n{beats}\n\n（生成失败）"
+    fallback = f"第 {idx} 章\n\n{beats}\n\n（生成失败）"
     return {"draft": fallback, "iteration": state.get("iteration", 0) + 1}
 
 

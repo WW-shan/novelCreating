@@ -18,10 +18,19 @@ def save_chapter_to_file(chapter_index, content, state):
         output_dir = Path(f"/project/novel/manuscript/{title}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # 清理Markdown格式，转换为纯文本
+        clean_content = content
+        # 移除 # 标题符号
+        clean_content = clean_content.replace('# 第', '第')
+        # 移除 ** 加粗标记
+        clean_content = clean_content.replace('**', '')
+        # 移除 * 斜体标记
+        clean_content = clean_content.replace('*', '')
+
         # 保存章节（txt格式）
         filename = output_dir / f"chapter_{chapter_index:03d}.txt"
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(content)
+            f.write(clean_content)
 
         print(f"  💾 已保存: {filename}")
 

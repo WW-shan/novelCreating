@@ -4,6 +4,30 @@ from src.state import NovelState
 import os
 import json
 import time
+from pathlib import Path
+
+
+def save_chapter_to_file(chapter_index, content, state):
+    """保存章节到文件"""
+    try:
+        # 获取小说标题
+        config = state.get('config', {})
+        title = config.get('title', '未命名小说')
+
+        # 创建输出目录
+        output_dir = Path(f"/project/novel/manuscript/{title}")
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # 保存章节
+        filename = output_dir / f"chapter_{chapter_index:03d}.md"
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        print(f"  💾 已保存: {filename}")
+
+    except Exception as e:
+        print(f"  ⚠️  保存失败: {str(e)[:50]}")
+
 
 def writer_node(state: NovelState) -> NovelState:
     """
@@ -73,6 +97,9 @@ def writer_node(state: NovelState) -> NovelState:
             print(f"     - {issue}")
 
     print(f"\n  ✅ 章节完成！{len(full_draft)} 字符")
+
+    # 💾 立即保存章节到文件
+    save_chapter_to_file(chapter_index, full_draft, state)
 
     return {"draft": full_draft, "iteration": state.get("iteration", 0) + 1}
 
@@ -246,6 +273,10 @@ def generate_single_quality(beats, characters, idx, state, tone, focus):
                     continue
 
             print(f"     ✅ 完成 ({len(draft)} 字符)")
+
+            # 💾 立即保存章节到文件
+            save_chapter_to_file(idx, draft, state)
+
             return {"draft": draft, "iteration": state.get("iteration", 0) + 1}
 
         except:

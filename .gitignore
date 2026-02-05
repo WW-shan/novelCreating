@@ -27,3 +27,8 @@ output/
 # Temporary files
 .claude/
 *.tmp
+
+# Generated content - do not upload novels
+manuscript/
+recovered_chapter_*.md
+recovered_chapter_*.txt

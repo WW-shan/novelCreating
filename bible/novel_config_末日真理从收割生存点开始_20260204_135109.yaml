@@ -1,0 +1,63 @@
+characters:
+  - age: "26"
+    goal: 让自己变得最强，自身利益最大化
+    location: 都市
+    name: 陆沉
+    occupation: 心理医生
+    relationships: {}
+    status: Alive
+    traits:
+      - 聪明
+      - 睿智
+      - 冷静
+      - 理性
+      - 谨慎
+      - 自私
+  - age: "29"
+    goal: 作为本书的最大反派，主角的最大对手，建立并统治末世下的“新绝对秩序”。他认为利己主义是混乱的根源，因此他要利用规则（或制造规则）将所有强者（包括陆沉）变为他秩序下的棋子。
+    location: 高层避难所 / 权力中心
+    name: 松姜恒
+    occupation: 未知
+    relationships: {}
+    status: Alive
+    traits:
+      - 睿智
+      - 冷静
+      - 谨慎
+      - 傲慢
+      - 多疑
+generation:
+  character_autonomy: moderate
+  critic_temp: 0.3
+  enable_plot_twists: true
+  foreshadow_strategy: moderate
+  planner_temp: 0.6
+  randomness_level: medium
+  seed: null
+  temperature: 0.7
+  writer_temp: 0.8999999999999999
+metadata:
+  created_at: "2026-02-04T13:46:44.410376"
+  version: "1.0"
+novel:
+  synopsis: 在规则扭曲的末世无限流背景，男主陆沉是极度理性的利己主义者，拥有能收割生存点能力，文风基调严肃冷峻，核心看点在于主角如何摒弃感性、利用规则漏洞与人性博弈，在信息不对称的悬疑副本中实现个人利益最大化。无限流副本用悬疑基调，可以适当增加一些配角的戏份来丰富故事，但主线始终围绕陆沉展开。
+  target_chapters: 100
+  title: 末日真理：从收割生存点开始
+  type: mystery
+style:
+  focus_elements:
+    - action
+    - dialogue
+    - environment
+    - suspense
+  pace: 适中
+  style_name: 黑暗压抑
+  tone: dark
+worldbuilding:
+  era: 末世无限流
+  factions: []
+  geography: {}
+  magic_system: {}
+  power_system: 有异能但不能打破无限流剧本规则的程度
+  setting: 都市
+  technology: []

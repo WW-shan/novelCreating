@@ -1,0 +1,54 @@
+{
+  "characters": {
+    "陆沉": {
+      "age": "26",
+      "goal": "让自己变得最强，自身利益最大化",
+      "location": "都市主角家里",
+      "name": "陆沉",
+      "occupation": "心理医生",
+      "relationships": {},
+      "status": "Alive",
+      "traits": [
+        "聪明",
+        "睿智",
+        "冷静",
+        "理性",
+        "谨慎",
+        "自私"
+      ]
+    },
+    "松姜恒": {
+      "age": "29",
+      "goal": "建立并统治末世下的“新绝对秩序”。他认为利己主义是混乱的根源，因此他要利用规则（或制造规则）将所有强者（包括陆沉）变为他秩序下的棋子。",
+      "location": "高层避难所 / 权力中心",
+      "name": "松姜恒",
+      "occupation": "未知",
+      "relationships": {},
+      "status": "Alive",
+      "traits": [
+        "睿智",
+        "冷静",
+        "谨慎",
+        "傲慢",
+        "多疑"
+      ]
+    }
+  },
+  "worldbuilding": {
+    "era": "末世无限流",
+    "factions": [],
+    "geography": {},
+    "magic_system": {},
+    "power_system": "有异能但不能打破无限流剧本规则的程度",
+    "setting": "都市主角家里",
+    "technology": []
+  },
+  "plot_tracks": [
+    {
+      "id": 1,
+      "description": "主线剧情：在规则扭曲的末世无限流背景，男主陆沉是极度理性的利己主义者，拥有能推演死局概率的“因果模拟”能力，文风基调严肃冷峻，核心看点在于主角如何摒弃感性、利用规则漏洞与人性博弈，在信息不对称的悬疑副本中实现个人利益最大化。",
+      "foreshadowed": false,
+      "resolved": false
+    }
+  ]
+}

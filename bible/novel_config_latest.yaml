@@ -1,0 +1,135 @@
+characters:
+- age: '26'
+  goal: 让自己变得最强，自身利益最大化
+  location: 都市
+  name: 陆沉
+  occupation: 心理医生
+  relationships: {}
+  status: Alive
+  traits:
+  - 聪明
+  - 睿智
+  - 冷静
+  - 理性
+  - 谨慎
+  - 自私
+- age: '29'
+  goal: 作为本书的最大反派，主角的最大对手，建立并统治末世下的“新绝对秩序”。他认为利己主义是混乱的根源，因此他要利用规则（或制造规则）将所有强者（包括陆沉）变为他秩序下的棋子。
+  location: 高层避难所 / 权力中心
+  name: 松姜恒
+  occupation: 未知
+  relationships: {}
+  status: Alive
+  traits:
+  - 睿智
+  - 冷静
+  - 谨慎
+  - 傲慢
+  - 多疑
+generation:
+  character_autonomy: moderate
+  critic_temp: 0.3
+  enable_plot_twists: true
+  foreshadow_strategy: moderate
+  planner_temp: 0.6
+  randomness_level: medium
+  seed: null
+  temperature: 0.7
+  writer_temp: 0.8999999999999999
+metadata:
+  created_at: '2026-02-04T13:46:44.410376'
+  version: '1.0'
+novel:
+  synopsis: 在规则扭曲的末世无限流背景，男主陆沉是极度理性的利己主义者，拥有能收割生存点能力，文风基调严肃冷峻，核心看点在于主角如何摒弃感性、利用规则漏洞与人性博弈，在信息不对称的悬疑副本中实现个人利益最大化。无限流副本用悬疑基调，可以适当增加一些配角的戏份来丰富故事，但主线始终围绕陆沉展开。
+  target_chapters: 100
+  title: 末日真理：从收割生存点开始
+  type: mystery
+style:
+  focus_elements:
+  - action
+  - dialogue
+  - environment
+  - suspense
+  pace: 适中
+  style_name: 黑暗压抑
+  tone: dark
+worldbuilding:
+  era: 末世无限流
+  factions: []
+  geography: {}
+  magic_system: {}
+  power_system: 有异能但不能打破无限流剧本规则的程度
+  setting: 都市
+  technology: []
+novel_outline:
+  main_goal: 在扭曲规则的末世游戏中，通过收割生存点成为最终掌控规则的存在
+  main_conflict: 极致理性与人性残留的内在博弈，个人利益最大化与末世游戏规则制定者的终极对抗
+  protagonist_arc: 从单纯利用规则漏洞的投机者，逐步成长为洞察规则本质、操控人性博弈的棋手，最终质疑并挑战游戏本身
+  key_milestones:
+  - milestone: 首次发现收割生存点能力，建立冷酷生存法则
+    target_chapter: 15
+  - milestone: 揭开末世游戏部分真相，意识到规则可被改写
+    target_chapter: 40
+  - milestone: 与其他顶尖玩家博弈，掌握关键规则漏洞
+    target_chapter: 65
+  - milestone: 触及游戏核心，发现规则制定者身份
+    target_chapter: 85
+  - milestone: 完成最终收割，成为新规则的掌控者
+    target_chapter: 100
+volume_frameworks:
+- title: 第一卷:生存点收割法则
+  chapters: 1-25
+  core_goal: 掌握生存点收割机制，在新手副本中建立信息优势和资源基础
+  key_events:
+  - 末世降临，陆沉觉醒生存点收割能力
+  - 首个副本利用规则漏洞大量收割队友生存点
+  - 发现生存点交易黑市，建立初步情报网络
+  - 遭遇首个强敌，以人性博弈反杀
+  - 揭开副本隐藏规则，获得稀有道具
+  ending_state: 成为新手区顶尖玩家，但引起神秘组织注意
+  foreshadowing:
+  - 副本背后存在规则制定者的暗示
+  - 某个被收割者留下诅咒般的预言
+  - 生存点系统出现无法解释的异常波动
+- title: 第二卷:人性博弈棋局
+  chapters: 26-50
+  core_goal: 进入高级副本，通过操控人性建立势力，探索生存点本质
+  key_events:
+  - 加入顶级玩家联盟，暗中布局夺权
+  - 团队副本中设计连环陷阱收割盟友
+  - 发现生存点与规则权限的关联
+  - 遭遇道德困境副本，理性与人性激烈碰撞
+  - 击败联盟首领，掌控最大玩家组织
+  ending_state: 成为玩家阵营领袖，触碰到规则层面的秘密
+  foreshadowing:
+  - 规则制定者开始主动接触陆沉
+  - 生存点收割能力出现进化征兆
+  - 某个副本NPC展现出异常的自我意识
+- title: 第三卷:规则边缘试探
+  chapters: 51-75
+  core_goal: 挑战规则边界，揭开末世游戏真相，寻求规则修改权限
+  key_events:
+  - 进入禁忌副本，发现游戏系统漏洞
+  - 与规则制定者代行者正面交锋
+  - 利用系统漏洞创造私人规则空间
+  - 揭露末世游戏是更高维度的实验
+  - 生存点能力进化，可窃取他人规则权限
+  ending_state: 获得部分规则修改权，但触发系统清除机制
+  foreshadowing:
+  - 真正的规则制定者并非唯一存在
+  - 陆沉的能力来源指向未知真相
+  - 某个被收割者的残念开始复苏
+- title: 第四卷:终局博弈
+  chapters: 76-100
+  core_goal: 对抗规则制定者，成为新的规则掌控者或打破游戏本身
+  key_events:
+  - 系统清除机制启动，陆沉被追杀
+  - 揭开自身能力真相：前代规则者遗留
+  - 联合所有被收割者残念对抗系统
+  - 进入规则核心，与制定者终极博弈
+  - 在掌控规则与毁灭系统间做出选择
+  ending_state: 成为新规则制定者，但发现这只是更大游戏的开始
+  foreshadowing:
+  - 暗示存在多元宇宙级别的游戏体系
+  - 陆沉的选择埋下新循环的种子
+  - 最后一个被收割者身份揭秘留白

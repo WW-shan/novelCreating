@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+novel_state.db
+novel_state.db-shm
+novel_state.db-wal
+output/
+*.log
+
+# Environment
+.env
+
+# Temporary files
+.claude/
+*.tmp

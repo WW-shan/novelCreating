@@ -1,0 +1,293 @@
+from langchain_core.messages import HumanMessage
+from langchain_anthropic import ChatAnthropic
+from src.state import NovelState
+import os
+import json
+import time
+import re
+
+def writer_node(state: NovelState) -> NovelState:
+    """
+    The Writer Node - High quality chapter generation.
+    Uses segmented generation with quality control.
+    """
+    print("--- WRITER NODE ---")
+
+    current_beats = state.get("current_beats", "")
+    world_bible = state.get("world_bible", {})
+    synopsis = state.get("synopsis", "")
+    characters = world_bible.get("characters", {})
+    chapter_index = state.get('current_chapter_index', 1)
+    config = state.get('config', {})
+
+    # 从配置读取写作风格
+    style = config.get('style', {})
+    tone = style.get('tone', 'neutral')
+    focus_elements = style.get('focus_elements', [])
+
+    print(f"  📝 章节 {chapter_index} - 分段生成策略（高质量模式）")
+    print(f"     风格: {tone}, 重点: {focus_elements}")
+
+    # 拆分 beats
+    beat_lines = [line.strip() for line in current_beats.split('\n') if line.strip()]
+
+    if len(beat_lines) <= 2:
+        print(f"  📌 场景较少 ({len(beat_lines)} 个)，使用单段生成")
+        return generate_single_segment_quality(current_beats, characters, chapter_index, state, tone, focus_elements)
+
+    # 分段生成
+    print(f"  📌 场景较多 ({len(beat_lines)} 个)，分段生成")
+
+    segments = []
+    for i, beat in enumerate(beat_lines, 1):
+        print(f"\n  🔸 生成第 {i}/{len(beat_lines)} 段...")
+
+        segment = generate_segment_quality(
+            beat=beat,
+            segment_num=i,
+            total_segments=len(beat_lines),
+            characters=characters,
+            previous_content="\n\n".join(segments),
+            chapter_index=chapter_index,
+            tone=tone,
+            focus_elements=focus_elements
+        )
+
+        if segment:
+            segments.append(segment)
+            word_count = len(segment)
+            print(f"     ✅ 第 {i} 段完成 ({word_count} 字符)")
+        else:
+            print(f"     ⚠️  第 {i} 段生成失败")
+            segments.append(f"\n\n[场景 {i}: {beat}]\n（本段暂未生成）\n")
+
+    # 合并并润色
+    full_draft = f"# 第 {chapter_index} 章\n\n" + "\n\n".join(segments)
+
+    # 质量检查
+    quality_issues = check_quality(full_draft, characters)
+    if quality_issues:
+        print(f"\n  ⚠️  质量检查发现 {len(quality_issues)} 个问题:")
+        for issue in quality_issues[:3]:
+            print(f"     - {issue}")
+
+    total_chars = len(full_draft)
+    print(f"\n  ✅ 章节完成！总字数: {total_chars} 字符")
+
+    return {"draft": full_draft, "iteration": state.get("iteration", 0) + 1}
+
+
+def generate_segment_quality(beat, segment_num, total_segments, characters, previous_content, chapter_index, tone, focus_elements):
+    """高质量段落生成"""
+
+    # 构建上下文
+    context_snippet = ""
+    if previous_content:
+        context_snippet = previous_content[-600:] if len(previous_content) > 600 else previous_content
+
+    # 构建风格指导
+    tone_guides = {
+        'serious': '用严肃、正式的叙事口吻，注重人物内心活动的深度刻画。',
+        'humorous': '用轻松、幽默的语言，对话要机智风趣。',
+        'dark': '用阴暗、压抑的氛围描写，突出环境的沉重感。',
+        'passionate': '用激昂、热血的语言，动作场面要生动有力。',
+        'romantic': '用温柔、细腻的笔触，注重情感的微妙变化。'
+    }
+    tone_instruction = tone_guides.get(tone, '')
+
+    # 构建重点指导
+    focus_instructions = []
+    if 'action' in focus_elements:
+        focus_instructions.append('- 强调动作场面，使用生动的动词')
+    if 'dialogue' in focus_elements:
+        focus_instructions.append('- 通过对话展现人物性格，对话要符合人物身份')
+    if 'psychology' in focus_elements:
+        focus_instructions.append('- 深入描写人物内心活动和心理变化')
+    if 'environment' in focus_elements:
+        focus_instructions.append('- 详细描绘环境氛围，使用感官细节')
+    if 'suspense' in focus_elements:
+        focus_instructions.append('- 设置悬念，控制信息透露节奏')
+
+    focus_text = '\n'.join(focus_instructions) if focus_instructions else ''
+
+    prompt = f"""你是专业小说作家，正在创作一部高质量小说。
+
+【角色信息】
+{json.dumps(characters, indent=2, ensure_ascii=False)[:400]}
+
+{'【前文内容】（用于保持连贯）\n' + context_snippet if context_snippet else '【这是章节开头】'}
+
+【当前场景】（第 {segment_num}/{total_segments} 段）
+{beat}
+
+【写作风格】
+{tone_instruction}
+
+【写作重点】
+{focus_text}
+
+【写作要求】
+1. 字数: 400-600 字（约 800-1200 字符）
+2. 手法: "展示而非告知"（Show, don't tell）
+3. 细节: 包含视觉、听觉、触觉、嗅觉等感官细节
+4. 人物: 对话和行为要符合角色性格设定
+5. 节奏: 长短句结合，避免单调
+6. 语言: 简体中文，避免陈词滥调
+7. 连贯: {('如果不是开头，要自然衔接前文' if segment_num > 1 else '这是开头，要引人入胜')}
+
+【禁止】
+- 不要使用"突然"、"原来"、"竟然"等过度词汇
+- 不要过度使用"只见"、"只听"等旁白式语言
+- 不要生硬地说明人物性格，要通过行动展现
+- 不要脱离场景大纲，添加无关内容
+
+请直接输出这一段的正文内容，不要任何标题或说明。"""
+
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            llm = ChatAnthropic(
+                model="claude-sonnet-4-5-20250929",
+                temperature=0.85,  # 稍高的创造性
+                anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+                anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+                timeout=75.0,  # 稍长的超时，保证质量
+                max_retries=0
+            )
+
+            response = llm.invoke([HumanMessage(content=prompt)])
+            segment = response.content.strip()
+
+            # 简单质量检查
+            if len(segment) < 200:
+                print(f"       ⚠️  内容过短，重试")
+                if attempt < max_attempts - 1:
+                    continue
+
+            return segment
+
+        except Exception as e:
+            if attempt < max_attempts - 1:
+                wait = (attempt + 1) * 4
+                print(f"       ⏳ 重试 ({attempt + 2}/{max_attempts})，等待 {wait}s...")
+                time.sleep(wait)
+
+    return None
+
+
+def generate_single_segment_quality(beats, characters, chapter_index, state, tone, focus_elements):
+    """单段高质量生成"""
+
+    tone_guides = {
+        'serious': '用严肃、正式的叙事口吻。',
+        'humorous': '用轻松、幽默的语言。',
+        'dark': '用阴暗、压抑的氛围。',
+        'passionate': '用激昂、热血的语言。',
+        'romantic': '用温柔、细腻的笔触。'
+    }
+    tone_instruction = tone_guides.get(tone, '')
+
+    focus_instructions = []
+    if 'action' in focus_elements:
+        focus_instructions.append('- 强调动作场面')
+    if 'dialogue' in focus_elements:
+        focus_instructions.append('- 重视对话刻画')
+    if 'psychology' in focus_elements:
+        focus_instructions.append('- 深入心理描写')
+    if 'environment' in focus_elements:
+        focus_instructions.append('- 详细环境描绘')
+    if 'suspense' in focus_elements:
+        focus_instructions.append('- 营造悬念氛围')
+
+    focus_text = '\n'.join(focus_instructions) if focus_instructions else ''
+
+    prompt = f"""你是专业小说作家，正在创作高质量小说章节。
+
+【角色信息】
+{json.dumps(characters, indent=2, ensure_ascii=False)[:500]}
+
+【章节大纲】
+{beats}
+
+【写作风格】
+{tone_instruction}
+
+【写作重点】
+{focus_text}
+
+【写作要求】
+1. 字数: 600-1000 字（约 1200-2000 字符）
+2. 手法: "展示而非告知"
+3. 细节: 丰富的感官描写
+4. 人物: 对话和行为符合性格
+5. 节奏: 长短句结合
+6. 语言: 简体中文，避免陈词滥调
+
+【禁止】
+- 过度使用"突然"、"原来"等词汇
+- 生硬的性格说明
+- 脱离大纲的内容
+
+请直接输出章节正文，不要标题。"""
+
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            print(f"     尝试 {attempt + 1}/{max_attempts}...")
+
+            llm = ChatAnthropic(
+                model="claude-sonnet-4-5-20250929",
+                temperature=0.85,
+                anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+                anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+                timeout=75.0,
+                max_retries=0
+            )
+
+            response = llm.invoke([HumanMessage(content=prompt)])
+            draft = f"# 第 {chapter_index} 章\n\n" + response.content.strip()
+
+            if len(response.content) < 500:
+                print(f"     ⚠️  内容过短，重试")
+                if attempt < max_attempts - 1:
+                    continue
+
+            print(f"     ✅ 生成成功 ({len(draft)} 字符)")
+            return {"draft": draft, "iteration": state.get("iteration", 0) + 1}
+
+        except Exception as e:
+            if attempt < max_attempts - 1:
+                wait = (attempt + 1) * 5
+                print(f"     ⏳ 重试，等待 {wait}s...")
+                time.sleep(wait)
+
+    # 失败
+    fallback = f"""# 第 {chapter_index} 章
+
+{beats}
+
+（本章因超时未能生成详细内容）"""
+
+    return {"draft": fallback, "iteration": state.get("iteration", 0) + 1}
+
+
+def check_quality(draft, characters):
+    """简单的质量检查"""
+    issues = []
+
+    # 检查长度
+    if len(draft) < 500:
+        issues.append("章节过短")
+
+    # 检查是否有过度使用的词汇
+    overused_words = ['突然', '原来', '竟然', '只见', '只听']
+    for word in overused_words:
+        count = draft.count(word)
+        if count > 3:
+            issues.append(f"'{word}' 使用过多 ({count} 次)")
+
+    # 检查是否有对话
+    if '「' not in draft and '"' not in draft and '"' not in draft:
+        issues.append("缺少对话")
+
+    return issues

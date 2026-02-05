@@ -18,8 +18,8 @@ def save_chapter_to_file(chapter_index, content, state):
         output_dir = Path(f"/project/novel/manuscript/{title}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 保存章节
-        filename = output_dir / f"chapter_{chapter_index:03d}.md"
+        # 保存章节（txt格式）
+        filename = output_dir / f"chapter_{chapter_index:03d}.txt"
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(content)
 

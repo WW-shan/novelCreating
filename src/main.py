@@ -43,7 +43,7 @@ def load_config():
 
     return config
 
-def config_to_initial_state(config):
+def config_to_initial_state(config, paths=None):
     """将配置转换为初始状态"""
     from src.utils.memory_strategy import get_memory_strategy
     from src.memory.layered_memory import initialize_layered_memory
@@ -119,7 +119,6 @@ def config_to_initial_state(config):
             outline_file = os.path.join(bible_dir, 'outline.yaml')
             if os.path.exists(outline_file):
                 try:
-                    import yaml
                     with open(outline_file, 'r', encoding='utf-8') as f:
                         outline_data = yaml.safe_load(f)
                     novel_outline = outline_data.get('outline', {})
@@ -396,7 +395,7 @@ if __name__ == "__main__":
     print(f"   每次运行都会产生不同的故事发展！")
 
     # 构建初始状态（注入项目路径）
-    initial_state = config_to_initial_state(config)
+    initial_state = config_to_initial_state(config, paths)
     initial_state['project_paths'] = paths  # 传递给writer节点使用
 
     # 构建工作流（使用项目专属数据库）

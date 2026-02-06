@@ -202,8 +202,15 @@ class ProjectManager:
 
             progress = f"{info['current_chapter']}/{info['target_chapters']}"
 
+            # 格式化时间显示（只显示日期和时间，不显示毫秒）
+            updated_time = info['updated_at']
+            if 'T' in updated_time:
+                updated_time = updated_time.replace('T', ' ').split('.')[0]
+            if len(updated_time) > 19:
+                updated_time = updated_time[:19]
+
             print(f"{marker}{status_icon} {info['title']}")
             print(f"     ID: {project_id}")
             print(f"     进度: {progress} 章")
-            print(f"     更新: {info['updated_at'][:19]}")
+            print(f"     更新: {updated_time}")
             print()

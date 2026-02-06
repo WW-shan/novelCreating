@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Interactive Novel Configuration Tool
-交互式小说配置工具
+Interactive Novel Configuration Tool (优化版)
+交互式小说配置工具 - 适配多项目系统和番茄小说风格
 """
 
 import os
@@ -15,7 +15,7 @@ class NovelConfigurator:
         self.config = {
             'metadata': {
                 'created_at': datetime.now().isoformat(),
-                'version': '1.0'
+                'version': '2.0'
             },
             'novel': {},
             'characters': [],
@@ -24,47 +24,67 @@ class NovelConfigurator:
             'generation': {}
         }
 
-        # 预设模板
+        # 预设模板（新增番茄小说风格模板）
         self.templates = {
             '1': {
-                'name': '赛博朋克',
-                'novel_type': 'cyberpunk',
-                'era': '2087年',
-                'setting': '霓虹闪烁的超大都市',
-                'power_system': '神经接口技术',
-                'example_synopsis': '一个黑客发现了公司试图控制人类意识的阴谋'
+                'name': '番茄爽文（末世/系统流）',
+                'novel_type': 'fanqie_shuangwen',
+                'era': '现代末世',
+                'setting': '全球灾变后的废土世界',
+                'power_system': '系统、生存点、技能',
+                'example_synopsis': '全球末日降临，主角获得收割系统，在别人挣扎求生时开始收割生存点，从弱者逆袭成最强收割者',
+                'style': 'fast_pace',
+                'tone': 'intense'
             },
             '2': {
-                'name': '玄幻修仙',
+                'name': '番茄爽文（都市修仙）',
+                'novel_type': 'fanqie_urban_cultivation',
+                'era': '现代都市',
+                'setting': '华夏都市',
+                'power_system': '修真等级、灵力',
+                'example_synopsis': '修真归来的仙尊重生都市，碾压一切不服，收美女、打脸敌人、称霸商界',
+                'style': 'fast_pace',
+                'tone': 'domineering'
+            },
+            '3': {
+                'name': '玄幻修仙（传统）',
                 'novel_type': 'xuanhuan',
                 'era': '架空古代',
                 'setting': '九州大陆',
-                'power_system': '灵力修炼体系',
-                'example_synopsis': '一个废柴少年获得神秘传承，踏上逆天修炼之路'
-            },
-            '3': {
-                'name': '都市爱情',
-                'novel_type': 'romance',
-                'era': '现代都市',
-                'setting': '繁华的现代大都市',
-                'power_system': '无',
-                'example_synopsis': '一次意外的相遇，让两个陌生人的命运交织在一起'
+                'power_system': '灵力修炼体系（炼气→筑基→金丹→元婴）',
+                'example_synopsis': '少年从废材逆袭，获得神秘传承，踏上逆天修炼之路，复仇、收徒、建立宗门',
+                'style': 'balanced',
+                'tone': 'epic'
             },
             '4': {
+                'name': '赛博朋克/科幻',
+                'novel_type': 'cyberpunk',
+                'era': '2087年',
+                'setting': '霓虹闪烁的超大都市',
+                'power_system': '神经接口技术、黑客技能',
+                'example_synopsis': '一个底层黑客发现公司控制人类意识的阴谋，决定反抗这个dystopian世界',
+                'style': 'dark',
+                'tone': 'tense'
+            },
+            '5': {
                 'name': '悬疑推理',
                 'novel_type': 'mystery',
                 'era': '现代',
                 'setting': '都市与郊区',
                 'power_system': '无',
-                'example_synopsis': '一个侦探接到神秘委托，调查连环失踪案背后的真相'
+                'example_synopsis': '侦探接到神秘委托调查连环失踪案，背后牵扯出惊人真相',
+                'style': 'slow_burn',
+                'tone': 'mysterious'
             },
-            '5': {
-                'name': '武侠江湖',
-                'novel_type': 'wuxia',
-                'era': '明朝',
-                'setting': '江湖武林',
-                'power_system': '内功心法与武功招式',
-                'example_synopsis': '一个少年目睹师门被灭，带着秘籍流落江湖寻仇'
+            '6': {
+                'name': '自定义',
+                'novel_type': 'custom',
+                'era': '',
+                'setting': '',
+                'power_system': '',
+                'example_synopsis': '完全自定义你的小说设定',
+                'style': 'balanced',
+                'tone': 'neutral'
             }
         }
 
@@ -72,16 +92,17 @@ class NovelConfigurator:
         self.trait_library = {
             '正面': ['勇敢', '聪明', '善良', '正直', '忠诚', '坚韧', '幽默', '温柔', '果断', '睿智'],
             '中性': ['冷静', '理性', '神秘', '孤独', '内向', '叛逆', '固执', '谨慎'],
-            '负面': ['傲慢', '冲动', '贪婪', '懦弱', '多疑', '残忍', '自私']
+            '负面': ['傲慢', '冲动', '贪婪', '懦弱', '多疑', '残忍', '自私'],
+            '番茄风格': ['狠辣', '腹黑', '霸道', '冷酷', '算计', '果敢', '狂傲']
         }
 
-        # 写作风格选项
+        # 写作风格选项（新增番茄风格）
         self.style_options = {
-            '1': {'name': '严肃正剧', 'temperature': 0.6, 'tone': 'serious'},
-            '2': {'name': '轻松幽默', 'temperature': 0.8, 'tone': 'humorous'},
-            '3': {'name': '黑暗压抑', 'temperature': 0.7, 'tone': 'dark'},
-            '4': {'name': '热血激昂', 'temperature': 0.9, 'tone': 'passionate'},
-            '5': {'name': '浪漫温馨', 'temperature': 0.7, 'tone': 'romantic'}
+            '1': {'name': '番茄爽文（快节奏、爽点密集）', 'temperature': 0.75, 'tone': 'intense', 'pace': 'fast'},
+            '2': {'name': '热血激昂', 'temperature': 0.8, 'tone': 'passionate', 'pace': 'fast'},
+            '3': {'name': '悬疑紧张', 'temperature': 0.7, 'tone': 'tense', 'pace': 'medium'},
+            '4': {'name': '黑暗压抑', 'temperature': 0.7, 'tone': 'dark', 'pace': 'medium'},
+            '5': {'name': '轻松幽默', 'temperature': 0.8, 'tone': 'humorous', 'pace': 'medium'}
         }
 
     def print_header(self, text):
@@ -114,7 +135,7 @@ class NovelConfigurator:
                 continue
             return user_input
 
-    def get_choice(self, prompt, options, show_descriptions=True):
+    def get_choice(self, prompt, options):
         """获取用户选择"""
         print(f"\n{prompt}")
         for key, value in options.items():
@@ -132,7 +153,11 @@ class NovelConfigurator:
     def step_1_choose_template(self):
         """步骤1：选择小说模板"""
         self.print_header("欢迎使用 AI 小说生成器 🎭")
-        print("\n首先，让我们选择一个小说类型作为起点...")
+        print("\n🎯 多项目管理系统已启用")
+        print("   每个小说拥有独立的配置、进度和文件")
+        print("   你可以同时创作多个小说项目！\n")
+
+        print("首先，让我们选择一个小说类型作为起点...")
         print("（你可以在后续步骤中完全自定义所有设定）")
 
         template_choice = self.get_choice(
@@ -141,8 +166,11 @@ class NovelConfigurator:
         )
 
         template = self.templates[template_choice]
-        print(f"\n✅ 已选择：{template['name']}")
-        print(f"   示例梗概：{template['example_synopsis']}")
+        if template_choice != '6':
+            print(f"\n✅ 已选择：{template['name']}")
+            print(f"   示例梗概：{template['example_synopsis']}")
+        else:
+            print(f"\n✅ 已选择：完全自定义模式")
 
         return template
 
@@ -155,22 +183,32 @@ class NovelConfigurator:
 
         # 故事梗概
         print(f"\n2. 用1-3句话描述你的故事")
-        print(f"   示例：{template['example_synopsis']}")
+        if template.get('example_synopsis'):
+            print(f"   示例：{template['example_synopsis']}")
         synopsis = self.get_input("   你的故事")
 
-        # 目标章节数
+        # 目标章节数（支持1-500章）
         def validate_chapters(x):
             try:
                 num = int(x)
-                if num < 1 or num > 100:
-                    print("❌ 请输入1-100之间的数字")
+                if num < 1:
+                    print("❌ 章节数至少为1")
                     return False
+                if num > 500:
+                    print("❌ 章节数不能超过500（建议100章以内）")
+                    return False
+                if num > 100:
+                    confirm = input(f"   警告：{num}章是长篇小说，生成时间较长。确认？(y/n): ").strip().lower()
+                    if confirm != 'y':
+                        return False
                 return True
             except:
                 print("❌ 请输入有效的数字")
                 return False
 
-        chapters = int(self.get_input("3. 计划写多少章", default="20", validate=validate_chapters))
+        print("\n3. 计划写多少章？")
+        print("   提示：短篇(10-30章) | 中篇(30-60章) | 长篇(60-100章) | 超长篇(100+章)")
+        chapters = int(self.get_input("   章节数", default="100", validate=validate_chapters))
 
         self.config['novel'] = {
             'title': title,
@@ -184,40 +222,40 @@ class NovelConfigurator:
         self.print_section("第二部分：世界观设定")
 
         # 时代背景
-        print(f"1. 时代背景 [参考: {template['era']}]")
-        era = self.get_input("   你的设定", default=template['era'])
+        if template.get('era'):
+            print(f"1. 时代背景 [参考: {template['era']}]")
+            era = self.get_input("   你的设定", default=template['era'])
+        else:
+            era = self.get_input("1. 时代背景（如：现代、古代、未来2077年）")
 
         # 主要场景
-        print(f"\n2. 故事发生的地点 [参考: {template['setting']}]")
-        setting = self.get_input("   你的设定", default=template['setting'])
+        if template.get('setting'):
+            print(f"\n2. 故事发生的地点 [参考: {template['setting']}]")
+            setting = self.get_input("   你的设定", default=template['setting'])
+        else:
+            setting = self.get_input("2. 主要场景/地点")
 
         # 力量体系/特殊设定
-        print(f"\n3. 特殊设定（力量体系/科技水平/魔法规则等）")
-        print(f"   [参考: {template['power_system']}]")
-        power_system = self.get_input("   你的设定", default=template['power_system'])
-
-        # 可选：派系/组织
-        print("\n4. 主要派系/组织（可选，按回车跳过）")
-        print("   示例：正派-武当派；邪派-血魔教；中立-商人联盟")
-        factions_input = input("   输入派系（用分号;分隔）: ").strip()
-        factions = [f.strip() for f in factions_input.split(';') if f.strip()]
+        if template.get('power_system'):
+            print(f"\n3. 特殊设定（力量体系/科技水平/魔法规则等）")
+            print(f"   [参考: {template['power_system']}]")
+            power_system = self.get_input("   你的设定", default=template['power_system'])
+        else:
+            print("\n3. 特殊设定（力量体系/系统/科技等，可选）")
+            power_system = input("   你的设定（按回车跳过）: ").strip() or "无"
 
         self.config['worldbuilding'] = {
             'era': era,
             'setting': setting,
-            'power_system': power_system,
-            'factions': factions,
-            'technology': [],
-            'magic_system': {},
-            'geography': {}
+            'power_system': power_system
         }
 
     def step_4_characters(self):
-        """步骤4：角色设定"""
+        """步骤4：角色设定（简化版）"""
         self.print_section("第三部分：角色设定")
 
-        print("一个好故事至少需要2-3个主要角色")
-        print("让我们逐个创建角色...\n")
+        print("💡 提示：至少需要1个主角，建议2-3个主要角色")
+        print("   （可以先创建主角，其他角色由AI自动生成）\n")
 
         char_count = 1
         while True:
@@ -234,19 +272,14 @@ class NovelConfigurator:
             # 职业/身份
             occupation = self.get_input("3. 职业/身份", default="未知")
 
-            # 性格特点
-            print("\n4. 性格特点（从下面选择3-5个，或自己输入）")
-            print(f"   正面特质：{', '.join(self.trait_library['正面'][:10])}")
-            print(f"   中性特质：{', '.join(self.trait_library['中性'][:8])}")
-            print(f"   负面特质：{', '.join(self.trait_library['负面'][:7])}")
-            traits_input = self.get_input("   输入特点（用逗号,分隔）")
+            # 性格特点（简化）
+            print("\n4. 性格特点（选择3-5个，或自己输入）")
+            print(f"   常用：{', '.join(self.trait_library['正面'][:5] + self.trait_library['番茄风格'][:3])}")
+            traits_input = self.get_input("   输入特点（用逗号,分隔）", default="冷静,理性,果断")
             traits = [t.strip() for t in traits_input.split(',') if t.strip()]
 
             # 目标/动机
-            goal = self.get_input("5. 这个角色的核心目标是什么", default="生存下去")
-
-            # 初始位置
-            location = self.get_input("6. 角色初始位置", default=self.config['worldbuilding']['setting'])
+            goal = self.get_input("5. 角色的核心目标", default="变强/生存")
 
             character = {
                 'name': name,
@@ -254,7 +287,7 @@ class NovelConfigurator:
                 'occupation': occupation,
                 'traits': traits,
                 'goal': goal,
-                'location': location,
+                'location': self.config['worldbuilding']['setting'],
                 'status': 'Alive',
                 'relationships': {}
             }
@@ -264,15 +297,19 @@ class NovelConfigurator:
             print(f"\n✅ 角色 '{name}' 创建完成！")
 
             # 询问是否继续添加
-            if char_count >= 2:
+            if char_count >= 1:
                 continue_add = input("\n是否添加更多角色？(y/n) [n]: ").strip().lower()
                 if continue_add != 'y':
                     break
 
             char_count += 1
 
+            if char_count > 5:
+                print("\n💡 建议：不要创建太多角色，AI会根据需要自动生成配角")
+                break
+
     def step_5_style_settings(self):
-        """步骤5：写作风格设定"""
+        """步骤5：写作风格设定（优化版）"""
         self.print_section("第四部分：写作风格")
 
         # 风格选择
@@ -283,76 +320,61 @@ class NovelConfigurator:
 
         style = self.style_options[style_choice]
 
-        # 叙事节奏
-        print("\n2. 叙事节奏：")
-        print("  1. 快节奏 - 情节紧凑，冲突密集")
-        print("  2. 适中 - 张弛有度")
-        print("  3. 慢热型 - 注重细节描写和氛围营造")
-        pace_options = {'1': '快节奏', '2': '适中', '3': '慢热型'}
-        pace_choice = self.get_choice("", pace_options)
-        pace = pace_options[pace_choice]
-
-        # 重点元素
-        print("\n3. 你希望重点强调哪些元素？（多选，用逗号分隔）")
-        print("  1-动作场面  2-对话  3-心理描写  4-环境描写  5-悬念")
-        focus_input = input("输入数字（例如：1,2,5）: ").strip()
-        focus_map = {
-            '1': 'action', '2': 'dialogue', '3': 'psychology',
-            '4': 'environment', '5': 'suspense'
-        }
-        focus_elements = [focus_map[x.strip()] for x in focus_input.split(',') if x.strip() in focus_map]
+        # 是否番茄风格
+        is_fanqie = '番茄' in style['name']
 
         self.config['style'] = {
             'tone': style['tone'],
             'style_name': style['name'],
-            'pace': pace,
-            'focus_elements': focus_elements
+            'pace': style.get('pace', 'medium'),
+            'is_fanqie_style': is_fanqie
         }
 
-        # 生成参数（影响随机性）
+        # 生成参数
         self.config['generation'] = {
             'temperature': style['temperature'],
-            'planner_temp': style['temperature'] - 0.1,
+            'planner_temp': style['temperature'] - 0.05,
             'writer_temp': style['temperature'] + 0.2,
-            'critic_temp': 0.3
+            'critic_temp': 0.3,
+            'max_revision_iterations': 2
         }
 
     def step_6_uniqueness_settings(self):
-        """步骤6：差异性设定（让每次生成不同）"""
+        """步骤6：差异性设定（简化版）"""
         self.print_section("第五部分：创作差异性设定")
 
-        print("为了让每次生成的小说都独一无二，我们提供以下选项：\n")
+        print("💡 这些设置决定了每次生成的独特性\n")
 
         # 随机性强度
-        print("1. 创作随机性强度：")
-        print("  1. 低 - 更可控，更接近你的设定（适合严谨题材）")
-        print("  2. 中 - 平衡随机性和可控性（推荐）")
-        print("  3. 高 - 更有创意，可能出现意外惊喜（适合脑洞题材）")
+        print("1. 创作随机性：")
+        print("  1. 低 - 更可控，严格按设定（适合严谨题材）")
+        print("  2. 中 - 平衡随机性和可控性（推荐✨）")
+        print("  3. 高 - 更有创意，可能出现意外惊喜")
         randomness_options = {'1': 'low', '2': 'medium', '3': 'high'}
         randomness_choice = self.get_choice("", randomness_options)
         randomness = randomness_options[randomness_choice]
 
         # 根据选择调整温度
-        temp_adjustment = {'low': -0.1, 'medium': 0, 'high': 0.2}
+        temp_adjustment = {'low': -0.1, 'medium': 0, 'high': 0.15}
         base_temp = self.config['generation']['temperature']
-        self.config['generation']['temperature'] = base_temp + temp_adjustment[randomness]
-        self.config['generation']['writer_temp'] = base_temp + temp_adjustment[randomness] + 0.2
+        self.config['generation']['temperature'] = min(0.95, base_temp + temp_adjustment[randomness])
+        self.config['generation']['writer_temp'] = min(0.95, base_temp + temp_adjustment[randomness] + 0.2)
 
         # 伏笔生成策略
-        print("\n2. 伏笔生成策略：")
-        print("  1. 保守 - 只使用你预设的伏笔")
-        print("  2. 适中 - AI会适当添加新伏笔（推荐）")
-        print("  3. 激进 - AI自由创造大量伏笔和支线")
+        print("\n2. 伏笔/剧情深度：")
+        print("  1. 简单 - 直线剧情，爽快推进")
+        print("  2. 适中 - 适当伏笔和支线（推荐✨）")
+        print("  3. 复杂 - 多重伏笔、复杂悬念")
         foreshadow_options = {'1': 'conservative', '2': 'moderate', '3': 'aggressive'}
         foreshadow_choice = self.get_choice("", foreshadow_options)
         foreshadow = foreshadow_options[foreshadow_choice]
 
         # 角色自主性
-        print("\n3. 角色行为自主性：")
-        print("  1. 严格 - 角色严格按照你的设定行动")
-        print("  2. 适中 - 允许角色在合理范围内自主发展（推荐）")
+        print("\n3. 角色自主性：")
+        print("  1. 严格 - 角色按设定行动")
+        print("  2. 适中 - 允许合理发展（推荐✨）")
         print("  3. 自由 - 角色可能做出意想不到的决定")
-        autonomy_options = {'1': 'strict', '2': 'moderate', '3': 'free'}
+        autonomy_options = {'1': 'strict', '2': 'medium', '3': 'free'}
         autonomy_choice = self.get_choice("", autonomy_options)
         autonomy = autonomy_options[autonomy_choice]
 
@@ -374,46 +396,33 @@ class NovelConfigurator:
         print(f"\n🌍 世界观：")
         print(f"   时代：{self.config['worldbuilding']['era']}")
         print(f"   场景：{self.config['worldbuilding']['setting']}")
+        print(f"   力量体系：{self.config['worldbuilding']['power_system']}")
         print(f"\n👥 角色：")
         for char in self.config['characters']:
             print(f"   - {char['name']} ({char['age']}岁, {char['occupation']})")
-            print(f"     特点：{', '.join(char['traits'])}")
+            print(f"     特点：{', '.join(char['traits'][:5])}")
+            print(f"     目标：{char['goal']}")
         print(f"\n🎨 风格：{self.config['style']['style_name']}")
         print(f"🎲 随机性：{self.config['generation']['randomness_level']}")
+        print(f"📖 伏笔策略：{self.config['generation']['foreshadow_strategy']}")
 
         # 确认保存
         print("\n" + "─"*60)
-        confirm = input("确认保存配置？(y/n) [y]: ").strip().lower()
+        confirm = input("确认保存配置并创建项目？(y/n) [y]: ").strip().lower()
         if confirm == 'n':
             print("❌ 配置未保存")
             return False
 
-        # 生成文件名
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_title = "".join(c for c in self.config['novel']['title'] if c.isalnum() or c in (' ', '-', '_'))
-        filename = f"novel_config_{safe_title}_{timestamp}.yaml"
-        filepath = os.path.join('/project/novel/bible', filename)
-
-        # 保存YAML
-        os.makedirs('/project/novel/bible', exist_ok=True)
-        with open(filepath, 'w', encoding='utf-8') as f:
-            yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False)
-
-        # 同时保存JSON格式（便于程序读取）
-        json_filepath = filepath.replace('.yaml', '.json')
-        with open(json_filepath, 'w', encoding='utf-8') as f:
-            json.dump(self.config, f, ensure_ascii=False, indent=2)
-
-        print(f"\n✅ 配置已保存到：")
-        print(f"   YAML格式: {filepath}")
-        print(f"   JSON格式: {json_filepath}")
-
-        # 保存为默认配置
+        # 保存为默认配置（用于main.py读取）
         default_path = '/project/novel/bible/novel_config_latest.yaml'
+        os.makedirs('/project/novel/bible', exist_ok=True)
+
         with open(default_path, 'w', encoding='utf-8') as f:
             yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False)
 
-        print(f"\n💡 提示：配置已设为默认，下次运行生成器将自动使用此配置")
+        print(f"\n✅ 配置已保存到：{default_path}")
+        print(f"\n💡 下一步：")
+        print(f"   运行 python3 main.py 或 ./novel.sh generate 开始生成")
 
         return True
 
@@ -431,15 +440,17 @@ class NovelConfigurator:
 
             if success:
                 self.print_header("🎉 配置完成！")
-                print("\n下一步：")
-                print("  运行 ./run_novel.sh 开始生成小说")
-                print("  或者编辑配置文件进行微调")
-                print("\n💡 为什么每次生成都不同？")
-                print(f"  1. 随机性等级：{self.config['generation']['randomness_level']}")
-                print(f"  2. AI温度参数：{self.config['generation']['writer_temp']:.1f}")
-                print(f"  3. 伏笔策略：{self.config['generation']['foreshadow_strategy']}")
-                print(f"  4. 每次运行使用不同的随机种子")
-                print("\n  即使用相同配置，AI也会产生不同的情节发展！")
+                print("\n📊 创作差异性说明：")
+                print("   即使用相同配置，每次生成的故事也会不同，因为：")
+                print(f"   • 随机性等级：{self.config['generation']['randomness_level']}")
+                print(f"   • AI温度参数：{self.config['generation']['writer_temp']:.2f}")
+                print(f"   • 每次使用不同的随机种子")
+                print(f"   • AI会根据上下文做出不同决策")
+
+                print("\n🎯 多项目管理：")
+                print("   • 此配置会自动创建独立项目")
+                print("   • 可随时使用 ./novel.sh projects 切换项目")
+                print("   • 每个项目的进度独立保存")
 
         except KeyboardInterrupt:
             print("\n\n⚠️  配置已取消")

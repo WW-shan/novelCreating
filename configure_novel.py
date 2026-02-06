@@ -421,6 +421,23 @@ class NovelConfigurator:
             yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False)
 
         print(f"\n✅ 配置已保存到：{default_path}")
+
+        # 🔧 立即创建项目（不等main.py）
+        from src.project_manager import ProjectManager
+        pm = ProjectManager()
+
+        try:
+            project_id, project_info = pm.create_project(self.config)
+            print(f"\n✅ 项目已创建：{project_info['title']}")
+            print(f"   项目ID: {project_id}")
+            print(f"   位置: projects/{project_id}/")
+        except Exception as e:
+            # 如果项目已存在，不报错
+            if "已存在" in str(e):
+                print(f"\n✅ 项目已存在：{self.config['novel']['title']}")
+            else:
+                print(f"\n⚠️  项目创建警告: {e}")
+
         print(f"\n💡 下一步：")
         print(f"   运行 python3 main.py 或 ./novel.sh generate 开始生成")
 

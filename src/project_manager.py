@@ -42,6 +42,14 @@ class ProjectManager:
         projects = self.list_projects()
         return projects.get(project_id)
 
+    def get_current_project_id(self):
+        """仅获取当前项目ID（不含详细信息）"""
+        if not self.current_project_file.exists():
+            return None
+
+        with open(self.current_project_file, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+
     def create_project(self, config):
         """创建新项目"""
         novel_title = config['novel']['title']
@@ -177,7 +185,7 @@ class ProjectManager:
         with open(self.index_file, 'w', encoding='utf-8') as f:
             json.dump(projects, f, ensure_ascii=False, indent=2)
 
-    def print_projects_table(self):
+    def print_projects_table(self, show_current_header=True):
         """打印项目列表（表格形式）"""
         projects = self.list_projects()
 
@@ -188,8 +196,38 @@ class ProjectManager:
         current = self.get_current_project()
         current_id = current["project_id"] if current else None
 
-        print("\n" + "="*80)
-        print("📚 小说项目列表")
+        # 显示当前项目（独立区域）
+        if show_current_header and current:
+            print("\n" + "="*80)
+            print("🎯 当前项目")
+            print("="*80)
+
+            status_icon = {
+                "created": "📝",
+                "in_progress": "⏳",
+                "completed": "✅"
+            }.get(current["status"], "❓")
+
+            progress = f"{current['current_chapter']}/{current['target_chapters']}"
+            progress_pct = int((current['current_chapter'] / current['target_chapters']) * 100) if current['target_chapters'] > 0 else 0
+
+            # 格式化时间显示
+            updated_time = current['updated_at']
+            if 'T' in updated_time:
+                updated_time = updated_time.replace('T', ' ').split('.')[0]
+            if len(updated_time) > 19:
+                updated_time = updated_time[:19]
+
+            print(f"{status_icon} {current['title']}")
+            print(f"   项目ID: {current_id}")
+            print(f"   进度: {progress} 章 ({progress_pct}%)")
+            print(f"   状态: {current['status']}")
+            print(f"   更新时间: {updated_time}")
+            print()
+
+        # 显示所有项目列表
+        print("="*80)
+        print("📚 所有项目列表")
         print("="*80)
 
         for project_id, info in projects.items():

@@ -19,7 +19,8 @@ def main():
         print("📚 小说项目管理器")
         print("="*60)
 
-        pm.print_projects_table()
+        # 显示当前项目和项目列表
+        pm.print_projects_table(show_current_header=True)
 
         print("\n操作选项:")
         print("  1. 切换当前项目")

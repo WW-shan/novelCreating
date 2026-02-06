@@ -136,6 +136,21 @@ print(len(pm.list_projects()))
         echo -e "${YELLOW}⚠️  暂无项目（运行 ./novel.sh new 创建）${NC}"
     fi
 
+    # 显示当前项目
+    CURRENT_PROJECT=$(python3 -c "
+from src.project_manager import ProjectManager
+pm = ProjectManager()
+current = pm.get_current_project()
+if current:
+    print(current['title'])
+" 2>/dev/null)
+
+    if [ -n "$CURRENT_PROJECT" ]; then
+        echo -e "${GREEN}🎯 当前项目: $CURRENT_PROJECT${NC}"
+    else
+        echo -e "${YELLOW}⚠️  未选择项目${NC}"
+    fi
+
     echo
 
     # 显示项目列表

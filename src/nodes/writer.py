@@ -19,6 +19,9 @@ def save_chapter_to_file(chapter_index, content, state):
         output_dir = Path(f"/project/novel/manuscript/{title}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # 生成章节标题（基于内容）
+        chapter_title = generate_chapter_title(content, chapter_index)
+
         # 清理Markdown格式，转换为纯文本
         clean_content = content
         # 移除 # 标题符号
@@ -28,15 +31,66 @@ def save_chapter_to_file(chapter_index, content, state):
         # 移除 * 斜体标记
         clean_content = clean_content.replace('*', '')
 
+        # 添加章节标题到内容开头
+        final_content = f"第 {chapter_index} 章：{chapter_title}\n\n" + clean_content.split('\n', 1)[-1] if '\n' in clean_content else clean_content
+
         # 保存章节（txt格式）
         filename = output_dir / f"chapter_{chapter_index:03d}.txt"
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(clean_content)
+            f.write(final_content)
 
         print(f"  💾 已保存: {filename}")
+        print(f"  📖 章节标题: {chapter_title}")
 
     except Exception as e:
         print(f"  ⚠️  保存失败: {str(e)[:50]}")
+
+
+def generate_chapter_title(content, chapter_index):
+    """基于章节内容生成标题"""
+    try:
+        # 使用AI生成简洁的章节标题
+        llm = ChatAnthropic(
+            model="claude-sonnet-4-5-20250929",
+            temperature=0.3,
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+            anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+            timeout=20.0,
+            max_retries=1
+        )
+
+        # 提取章节前500字作为参考
+        content_preview = content[:500]
+
+        prompt = f"""基于以下章节内容，生成一个简洁的章节标题（4-8个字）。
+
+章节内容预览：
+{content_preview}
+
+要求：
+1. 标题要简洁（4-8个字）
+2. 反映本章核心情节或关键事件
+3. 不要使用引号或其他标点
+4. 直接输出标题，不要其他内容
+
+章节标题："""
+
+        response = llm.invoke([HumanMessage(content=prompt)])
+        title = response.content.strip()
+
+        # 清理标题（移除引号等）
+        title = title.replace('"', '').replace("'", '').replace('《', '').replace('》', '')
+
+        # 限制长度
+        if len(title) > 12:
+            title = title[:12]
+
+        return title
+
+    except Exception as e:
+        # 如果生成失败，返回默认标题
+        print(f"  ⚠️  标题生成失败，使用默认标题")
+        return f"第{chapter_index}章"
 
 
 def writer_node(state: NovelState) -> NovelState:

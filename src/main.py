@@ -254,24 +254,6 @@ def build_graph(config):
     app = workflow.compile(checkpointer=memory)
     return app
 
-def save_chapter_to_file(chapter_index, draft, config):
-    """保存章节到文件"""
-    manuscript_dir = "/project/novel/manuscript"
-    os.makedirs(manuscript_dir, exist_ok=True)
-
-    # 使用小说标题创建子目录
-    novel_title = config['novel']['title']
-    safe_title = "".join(c for c in novel_title if c.isalnum() or c in (' ', '-', '_')).strip()
-    novel_dir = os.path.join(manuscript_dir, safe_title)
-    os.makedirs(novel_dir, exist_ok=True)
-
-    filename = f"{novel_dir}/chapter_{chapter_index:03d}.md"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(f"# {novel_title} - 第{chapter_index}章\n\n")
-        f.write(draft)
-
-    return filename
-
 def save_world_bible(world_bible, config):
     """保存世界状态"""
     bible_dir = "/project/novel/bible"
@@ -439,22 +421,7 @@ if __name__ == "__main__":
 
                     final_state = node_output
 
-        # 保存结果
-        print("\n" + "="*60)
-        print("💾 保存生成结果...")
-        print("="*60)
-
-        # 保存所有章节
-        for idx, draft in enumerate(chapter_drafts, start=1):
-            filename = save_chapter_to_file(idx, draft, config)
-            print(f"✅ 第{idx}章已保存: {filename}")
-
-        # 保存世界状态
-        if final_state and 'world_bible' in final_state:
-            bible_file = save_world_bible(final_state['world_bible'], config)
-            print(f"✅ 世界状态已保存: {bible_file}")
-
-        # 生成摘要
+        # 生成摘要（章节已在writer节点中实时保存）
         print("\n" + "="*60)
         print("📊 生成完成！")
         print("="*60)
@@ -465,7 +432,11 @@ if __name__ == "__main__":
         novel_title = config['novel']['title']
         safe_title = "".join(c for c in novel_title if c.isalnum() or c in (' ', '-', '_')).strip()
         print(f"   章节目录: ./manuscript/{safe_title}/")
-        print(f"   世界状态: ./bible/{safe_title}_world_state.json")
+
+        # 保存世界状态
+        if final_state and 'world_bible' in final_state:
+            bible_file = save_world_bible(final_state['world_bible'], config)
+            print(f"   世界状态: {bible_file}")
 
         print(f"\n💡 下次运行:")
         print(f"   • 使用相同配置会生成不同的故事发展")

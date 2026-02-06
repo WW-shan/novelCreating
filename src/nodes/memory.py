@@ -132,9 +132,13 @@ def update_world_state_with_ai(draft, world_bible, chapter_index, history, state
         "分析本章内容，更新以下信息：",
         "",
         "1. **角色发展**: 主要角色的状态、情感、关系变化",
-        "2. **伏笔/谜团**: 新出现的伏笔，已揭示的谜团",
+        "2. **伏笔/谜团**: 新出现的伏笔，本章已揭示/解决的伏笔",
         "3. **世界状态**: 环境、设定的重要变化",
         "4. **章节摘要**: 本章核心情节(50-100字)",
+        "",
+        "⚠️ 重要提示：",
+        "- 如果本章揭示或解决了之前的伏笔/谜团，请在 'resolved_plot_threads' 中列出",
+        "- 只列出真正被解决的伏笔（有明确答案/真相揭示），不是仅仅提及",
         "",
         "【输出格式 - 严格 JSON】",
         "⚠️ 重要：必须是合法的 JSON 格式！",
@@ -155,7 +159,10 @@ def update_world_state_with_ai(draft, world_bible, chapter_index, history, state
         '    "角色名": "状态/情感/关系变化"',
         '  },  ← 注意这里的逗号！',
         '  "plot_developments": [',
-        '    "新伏笔或谜团揭示"',
+        '    "新伏笔或谜团"',
+        '  ],  ← 注意这里的逗号！',
+        '  "resolved_plot_threads": [',
+        '    "本章已解决的伏笔关键词（如：主角身世、组织目的等）"',
         '  ],  ← 注意这里的逗号！',
         '  "world_changes": [',
         '    "环境或设定的重要变化"',
@@ -311,6 +318,60 @@ def update_bible_with_parsed_data(world_bible, parsed_data, chapter_index, state
                 if len(updated_bible["characters"][char_name]["recent_notes"]) > MAX_RECENT_NOTES:
                     updated_bible["characters"][char_name]["recent_notes"] = \
                         updated_bible["characters"][char_name]["recent_notes"][-MAX_RECENT_NOTES:]
+
+    # 处理已解决的伏笔（先移除再添加新的）
+    resolved_plot_threads = parsed_data.get(\"resolved_plot_threads\", [])
+    hot_memory = state.get(\"hot_memory\") if state else None
+
+    if resolved_plot_threads:
+        print(f"  🎯 检测到 {len(resolved_plot_threads)} 个已解决的伏笔")
+
+        if hot_memory is not None:
+            # Long mode: plot_threads is dict with "active" key
+            if \"plot_threads\" in updated_bible and \"active\" in updated_bible[\"plot_threads\"]:
+                active_threads = updated_bible[\"plot_threads\"][\"active\"]
+                resolved_count = 0
+
+                # 标记匹配的伏笔为已解决
+                for resolved_keyword in resolved_plot_threads:
+                    for thread in active_threads:
+                        if isinstance(thread, dict):
+                            thread_text = thread.get(\"text\", \"\")
+                            # 如果伏笔文本包含关键词，标记为已解决
+                            if resolved_keyword in thread_text and not thread.get(\"resolved\", False):
+                                thread[\"resolved\"] = True
+                                thread[\"resolved_at\"] = chapter_index
+                                resolved_count += 1
+                                print(f"    ✓ 解决伏笔: {thread_text[:40]}...")
+
+                # 移除已解决的伏笔
+                updated_bible[\"plot_threads\"][\"active\"] = [
+                    t for t in active_threads if not t.get(\"resolved\", False)
+                ]
+
+                if resolved_count > 0:
+                    print(f"  ✅ 共解决 {resolved_count} 个伏笔，移除后剩余 {len(updated_bible['plot_threads']['active'])} 个")
+        else:
+            # Short mode: plot_threads is a list of strings
+            if \"plot_threads\" in updated_bible and isinstance(updated_bible[\"plot_threads\"], list):
+                remaining_threads = []
+                resolved_count = 0
+
+                for thread in updated_bible[\"plot_threads\"]:
+                    thread_text = thread if isinstance(thread, str) else str(thread)
+                    # 检查是否匹配任何已解决的关键词
+                    is_resolved = any(keyword in thread_text for keyword in resolved_plot_threads)
+
+                    if not is_resolved:
+                        remaining_threads.append(thread)
+                    else:
+                        resolved_count += 1
+                        print(f"    ✓ 解决伏笔: {thread_text[:40]}...")
+
+                updated_bible[\"plot_threads\"] = remaining_threads
+
+                if resolved_count > 0:
+                    print(f"  ✅ 共解决 {resolved_count} 个伏笔，移除后剩余 {len(remaining_threads)} 个")
 
     # 更新伏笔追踪（适配双模式）
     plot_developments = parsed_data.get("plot_developments", [])

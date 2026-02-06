@@ -9,6 +9,7 @@ def critic_node(state: NovelState) -> NovelState:
     """
     The Critic Node - comprehensive quality check.
     Evaluates complete content with intelligent truncation.
+    支持番茄小说风格评审标准
     """
     print("--- CRITIC NODE ---")
 
@@ -45,6 +46,11 @@ def critic_node(state: NovelState) -> NovelState:
     # 提取角色状态和伏笔（完整版功能）
     character_states = extract_character_context(world_bible.get('characters', {}))
     plot_threads = world_bible.get('plot_threads', [])
+
+    # 检查是否为番茄小说风格
+    config = state.get('config', {})
+    style = config.get('style', {})
+    is_fanqie = style.get('is_fanqie_style', False)
 
     # 构建评审 prompt（完整版：多维度评审）
     prompt_parts = [
@@ -99,19 +105,46 @@ def critic_node(state: NovelState) -> NovelState:
         "【生成内容】",
         content_to_check,
         "",
-        "【评审维度】",
-        "1. **角色一致性**: 行为/对话是否符合角色性格和当前状态",
-        "2. **场景覆盖**: 是否覆盖所有场景大纲要点",
-        "3. **逻辑合理性**: 情节发展是否合理，有无明显漏洞",
-        "4. **伏笔处理**: 如有伏笔，是否自然融入或推进",
-        "5. **文笔质量**: 是否展示不告知，细节是否丰富",
-        "",
-        "【回答格式】",
-        "- 如果通过: '通过 - 亮点: [具体说明]'",
-        "- 如果需修改: '需修改 - 问题: [具体问题]'",
-        "",
-        "请给出专业评审。"
     ])
+
+    # 根据风格选择评审标准
+    if is_fanqie:
+        print("  🎯 使用番茄小说评审标准")
+        prompt_parts.extend([
+            "【评审维度 - 番茄小说标准】",
+            "1. **节奏速度**: 是否开门见山，直接进入冲突，无冗长铺垫",
+            "2. **爽点密度**: 每章至少2-3个爽点（打脸/反转/收获/碾压）",
+            "3. **对比强烈**: 是否有别人vs主角的强烈对比",
+            "4. **简洁直白**: 避免过度心理描写，多用动作和对话",
+            "5. **主角强势**: 主角是否智商在线、行动果断、占据主动",
+            "",
+            "【番茄风格要求】",
+            "- 冲突→爽点→冲突→爽点，快节奏推进",
+            "- 避免纯铺垫场景，每个场景都要有冲突或收获",
+            "- 打脸要狠，反转要快，不拖泥带水",
+            "",
+            "【回答格式】",
+            "- 如果通过: '通过 - 爽点: [具体爽点]'",
+            "- 如果需修改: '需修改 - 问题: [节奏/爽点/对比等具体问题]'",
+            "",
+            "请按番茄小说标准评审。"
+        ])
+    else:
+        print("  📖 使用传统文学评审标准")
+        prompt_parts.extend([
+            "【评审维度】",
+            "1. **角色一致性**: 行为/对话是否符合角色性格和当前状态",
+            "2. **场景覆盖**: 是否覆盖所有场景大纲要点",
+            "3. **逻辑合理性**: 情节发展是否合理，有无明显漏洞",
+            "4. **伏笔处理**: 如有伏笔，是否自然融入或推进",
+            "5. **文笔质量**: 是否展示不告知，细节是否丰富",
+            "",
+            "【回答格式】",
+            "- 如果通过: '通过 - 亮点: [具体说明]'",
+            "- 如果需修改: '需修改 - 问题: [具体问题]'",
+            "",
+            "请给出专业评审。"
+        ])
 
     prompt = '\n'.join(prompt_parts)
 
@@ -150,11 +183,11 @@ def critic_node(state: NovelState) -> NovelState:
             else:
                 print(f"  ⚠️  评审超时,使用快速检查")
                 # 快速本地检查
-                local_feedback = quick_local_check(draft, world_bible)
+                local_feedback = quick_local_check(draft, world_bible, is_fanqie)
                 return {"feedback": local_feedback}
 
 
-def quick_local_check(draft, world_bible):
+def quick_local_check(draft, world_bible, is_fanqie=False):
     """无AI的快速本地质量检查"""
     issues = []
 
@@ -162,18 +195,39 @@ def quick_local_check(draft, world_bible):
     if len(draft) < 800:
         issues.append("内容过短")
 
-    # 检查过度使用的词汇
-    overused_words = ['突然', '原来', '竟然', '只见', '只听']
-    for word in overused_words:
-        count = draft.count(word)
-        if count > 4:
-            issues.append(f"'{word}'使用过多({count}次)")
+    if is_fanqie:
+        # 番茄小说专用检查
+        # 检查节奏（避免过长段落）
+        paragraphs = draft.split('\n\n')
+        long_paragraphs = [p for p in paragraphs if len(p) > 500]
+        if len(long_paragraphs) > 2:
+            issues.append("段落过长，节奏拖沓")
 
-    # 检查是否有对话
-    has_dialogue = ('「' in draft or '"' in draft or '"' in draft or
-                    '「' in draft or '『' in draft)
-    if not has_dialogue and len(draft) > 1000:
-        issues.append("缺少对话")
+        # 检查对话（番茄小说需要更多对话）
+        dialogue_count = draft.count('「') + draft.count('"') + draft.count('"')
+        if dialogue_count < 4 and len(draft) > 1000:
+            issues.append("对话太少，需要更多直接对话")
+
+        # 检查爽点关键词
+        shuangdian_keywords = ['碾压', '打脸', '震惊', '不敢相信', '怎么可能', '收获', '突破']
+        has_shuangdian = any(kw in draft for kw in shuangdian_keywords)
+        if not has_shuangdian and len(draft) > 1500:
+            issues.append("缺少爽点元素（打脸/碾压/收获）")
+
+    else:
+        # 传统文学检查
+        # 检查过度使用的词汇
+        overused_words = ['突然', '原来', '竟然', '只见', '只听']
+        for word in overused_words:
+            count = draft.count(word)
+            if count > 4:
+                issues.append(f"'{word}'使用过多({count}次)")
+
+        # 检查是否有对话
+        has_dialogue = ('「' in draft or '"' in draft or '"' in draft or
+                        '「' in draft or '『' in draft)
+        if not has_dialogue and len(draft) > 1000:
+            issues.append("缺少对话")
 
     # 检查角色名称是否出现
     characters = world_bible.get('characters', {})
@@ -189,7 +243,8 @@ def quick_local_check(draft, world_bible):
     if issues:
         return f"需改进: {'; '.join(issues[:3])}"
     else:
-        return "通过(本地检查): 内容长度适中,词汇使用合理,包含对话和角色"
+        style_type = "番茄小说标准" if is_fanqie else "传统标准"
+        return f"通过(本地检查/{style_type}): 内容长度适中,格式合理,包含必要元素"
 
 
 def extract_character_context(characters):

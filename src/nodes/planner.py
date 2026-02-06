@@ -5,11 +5,86 @@ from src.utils.plot_manager import analyze_plot_threads, format_plot_thread_guid
 import os
 import json
 import time
+import yaml
+
+
+def load_custom_outline(state):
+    """
+    从项目目录加载自定义大纲
+
+    Returns:
+        dict or None: 大纲信息（outline, volumes）
+    """
+    project_paths = state.get('project_paths', {})
+    bible_dir = project_paths.get('bible_dir')
+
+    if not bible_dir:
+        return None
+
+    outline_file = os.path.join(bible_dir, 'outline.yaml')
+
+    if not os.path.exists(outline_file):
+        return None
+
+    try:
+        with open(outline_file, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        return data
+    except Exception as e:
+        print(f"  ⚠️  读取大纲文件失败: {e}")
+        return None
+
+
+def find_current_phase(outline, chapter_index):
+    """
+    根据章节号查找当前所在阶段
+
+    Returns:
+        dict or None: 当前阶段信息
+    """
+    if not outline or 'phases' not in outline:
+        return None
+
+    for phase in outline['phases']:
+        chapters_range = phase.get('chapters', '')
+        if '-' in chapters_range:
+            try:
+                start, end = map(int, chapters_range.split('-'))
+                if start <= chapter_index <= end:
+                    return phase
+            except:
+                continue
+
+    return None
+
+
+def find_current_volume(volumes, chapter_index):
+    """
+    根据章节号查找当前所在卷
+
+    Returns:
+        dict or None: 当前卷信息
+    """
+    if not volumes:
+        return None
+
+    for volume in volumes:
+        chapters_range = volume.get('chapters', '')
+        if '-' in chapters_range:
+            try:
+                start, end = map(int, chapters_range.split('-'))
+                if start <= chapter_index <= end:
+                    return volume
+            except:
+                continue
+
+    return None
 
 def planner_node(state: NovelState) -> NovelState:
     """
     The Planner Node - 完整版智能场景规划
     利用角色状态、伏笔、世界事件生成连贯深度的场景
+    支持从配置文件读取自定义大纲
     """
     print("--- PLANNER NODE ---")
 
@@ -17,8 +92,14 @@ def planner_node(state: NovelState) -> NovelState:
     synopsis = state.get("synopsis", "")
     chapter_history = state.get("chapters", [])
     current_chapter_index = state.get("current_chapter_index", 1)
+    config = state.get("config", {})
 
     print(f"  📋 规划第 {current_chapter_index} 章...")
+
+    # 🔧 新增：加载自定义大纲（如果有）
+    custom_outline = load_custom_outline(state)
+    if custom_outline:
+        print(f"  📖 使用自定义大纲")
 
     # 检查是否使用分层记忆（长篇模式）
     hot_memory = state.get("hot_memory")
@@ -65,7 +146,8 @@ def planner_node(state: NovelState) -> NovelState:
         chapter_history=chapter_history,
         synopsis=synopsis,
         chapter_index=current_chapter_index,
-        plot_analysis=plot_analysis  # 传递伏笔分析
+        plot_analysis=plot_analysis,  # 传递伏笔分析
+        custom_outline=custom_outline  # 🔧 新增：传递自定义大纲
     )
 
     if beats:
@@ -77,8 +159,37 @@ def planner_node(state: NovelState) -> NovelState:
         return {"current_beats": "场景1: 角色出现\n场景2: 发生冲突\n场景3: 解决问题"}
 
 
-def generate_intelligent_beats(characters, plot_threads, world_events, chapter_history, synopsis, chapter_index, plot_analysis=None):
-    """生成智能场景大纲（完整版：含伏笔管理）"""
+def generate_intelligent_beats(characters, plot_threads, world_events, chapter_history, synopsis, chapter_index, plot_analysis=None, custom_outline=None):
+    """生成智能场景大纲（完整版：含伏笔管理 + 自定义大纲）"""
+
+    # 🔧 新增：解析自定义大纲
+    current_phase = None
+    current_volume = None
+    outline_guidance = ""
+
+    if custom_outline:
+        outline_data = custom_outline.get('outline', {})
+        volumes_data = custom_outline.get('volumes', [])
+
+        # 查找当前阶段
+        current_phase = find_current_phase(outline_data, chapter_index)
+        if current_phase:
+            outline_guidance += f"\n【当前阶段】第{chapter_index}章位于：{current_phase.get('name')}\n"
+            outline_guidance += f"阶段目标: {current_phase.get('goal')}\n"
+
+        # 查找当前卷
+        current_volume = find_current_volume(volumes_data, chapter_index)
+        if current_volume:
+            outline_guidance += f"\n【当前卷】第{current_volume.get('volume')}卷：{current_volume.get('title')}\n"
+            outline_guidance += f"卷核心目标: {current_volume.get('core_goal')}\n"
+            if current_volume.get('key_events'):
+                outline_guidance += f"关键事件: {', '.join(current_volume.get('key_events', []))}\n"
+
+        # 添加总纲信息
+        if outline_data:
+            outline_guidance += f"\n【总纲】\n"
+            outline_guidance += f"主目标: {outline_data.get('main_goal', '（未设定）')}\n"
+            outline_guidance += f"主线冲突: {outline_data.get('main_conflict', '（未设定）')}\n"
 
     # 构建角色状态摘要
     character_states = []
@@ -138,6 +249,16 @@ def generate_intelligent_beats(characters, plot_threads, world_events, chapter_h
         "【故事梗概】",
         synopsis[:500],
         "",
+    ]
+
+    # 🔧 新增：添加自定义大纲指引
+    if outline_guidance:
+        prompt_parts.extend([
+            outline_guidance.strip(),
+            ""
+        ])
+
+    prompt_parts.extend([
         "【角色当前状态】",
         character_summary,
         "",
@@ -150,7 +271,7 @@ def generate_intelligent_beats(characters, plot_threads, world_events, chapter_h
         "【前几章回顾】",
         history_summary,
         "",
-    ]
+    ])
 
     # 添加伏笔管理指导（完整版功能）
     if plot_analysis:

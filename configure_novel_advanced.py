@@ -60,10 +60,14 @@ class AdvancedNovelConfigurator:
         print("  - 长篇：200-500 章")
         target_chapters = int(input("目标章节数 (10-500): ").strip() or "100")
 
+        # 🔧 添加故事梗概输入
+        synopsis = input("\n故事梗概: ").strip() or "（待补充）"
+
         self.config['novel'] = {
             'title': title,
             'type': novel_type,
-            'target_chapters': target_chapters
+            'target_chapters': target_chapters,
+            'synopsis': synopsis  # 添加到配置中
         }
 
         return target_chapters

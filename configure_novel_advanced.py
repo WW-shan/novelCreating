@@ -37,12 +37,13 @@ class AdvancedNovelConfigurator:
         self.print_header("步骤 1/8: 选择大纲模式")
 
         print("\n请选择大纲配置方式：")
-        print("  1. 简易模式（只需梗概，AI 自动规划）- 推荐！")
-        print("  2. AI 自动生成（完整总纲+卷纲，每卷25章）")
-        print("  3. 完整自定义（手动输入所有内容）")
-        print("  4. 导入现有大纲（从文件导入）")
+        print("  1. 简易模式（只需梗概，AI 自动规划）")
+        print("  2. AI 快速生成（完整总纲+卷纲，每卷25章）")
+        print("  3. AI 辅助自定义（一步步引导，灵活调整）⭐ 推荐！")
+        print("  4. 完全手动（不用AI，完全手动输入）")
+        print("  5. 导入现有大纲（从文件导入）")
 
-        choice = input("\n请选择 (1-4) [1]: ").strip() or "1"
+        choice = input("\n请选择 (1-5) [3]: ").strip() or "3"
 
         return choice
 
@@ -142,6 +143,283 @@ class AdvancedNovelConfigurator:
         print(f"\n✅ AI 生成完成！")
         print(f"   总纲: {len(phases)} 个阶段")
         print(f"   卷纲: {len(volumes)} 卷")
+
+    def step_3_ai_assisted_custom(self, target_chapters):
+        """步骤3：AI 辅助自定义大纲"""
+        self.print_header("步骤 3/8: AI 辅助自定义大纲")
+
+        print("\n🤖 AI 将按照你的要求一步步生成详细大纲")
+        print("你可以在每一步选择接受或修改")
+
+        # 第一步：生成总纲
+        print("\n" + "="*60)
+        print("  第 1 步：生成总纲")
+        print("="*60)
+
+        synopsis = self.config['novel']['synopsis']
+        print(f"\n基于梗概：{synopsis[:100]}...")
+
+        use_ai = input("\n让 AI 生成总纲？(y/n) [y]: ").strip().lower() != 'n'
+
+        if use_ai:
+            print("\n🤖 AI 正在生成总纲...")
+            from generate_outline import generate_novel_outline
+            novel_outline = generate_novel_outline(self.config)
+            print("✅ 总纲生成完成\n")
+
+            # 显示 AI 生成的内容
+            print("【AI 生成的总纲】")
+            print(f"主目标: {novel_outline.get('main_goal', '')}")
+            print(f"主冲突: {novel_outline.get('main_conflict', '')}")
+            print(f"成长弧: {novel_outline.get('protagonist_arc', '')}")
+
+            # 询问是否修改
+            modify = input("\n是否修改？(y/n) [n]: ").strip().lower() == 'y'
+            if modify:
+                main_goal = input(f"主目标 [{novel_outline.get('main_goal', '')}]: ").strip() or novel_outline.get('main_goal', '')
+                main_conflict = input(f"主冲突 [{novel_outline.get('main_conflict', '')}]: ").strip() or novel_outline.get('main_conflict', '')
+                protagonist_arc = input(f"成长弧 [{novel_outline.get('protagonist_arc', '')}]: ").strip() or novel_outline.get('protagonist_arc', '')
+            else:
+                main_goal = novel_outline.get('main_goal', '')
+                main_conflict = novel_outline.get('main_conflict', '')
+                protagonist_arc = novel_outline.get('protagonist_arc', '')
+        else:
+            # 手动输入
+            main_goal = input("主目标: ").strip() or "（待定）"
+            main_conflict = input("主冲突: ").strip() or "（待定）"
+            protagonist_arc = input("成长弧: ").strip() or "（待定）"
+            novel_outline = {
+                'main_goal': main_goal,
+                'main_conflict': main_conflict,
+                'protagonist_arc': protagonist_arc
+            }
+
+        # 第二步：阶段划分
+        print("\n" + "="*60)
+        print("  第 2 步：阶段划分")
+        print("="*60)
+
+        print(f"\n总章节数: {target_chapters} 章")
+        print("建议阶段数:")
+        if target_chapters < 50:
+            suggested_phases = 3
+        elif target_chapters < 200:
+            suggested_phases = 5
+        else:
+            suggested_phases = max(5, min(15, target_chapters // 50))
+
+        print(f"  - 根据章节数，建议 {suggested_phases} 个阶段")
+
+        use_ai_phases = input("\n让 AI 生成阶段划分？(y/n) [y]: ").strip().lower() != 'n'
+
+        if use_ai_phases:
+            print("\n🤖 AI 正在生成阶段划分...")
+            phases = self._ai_generate_phases(novel_outline, target_chapters, suggested_phases)
+            print(f"✅ 生成了 {len(phases)} 个阶段\n")
+
+            # 显示阶段
+            for i, phase in enumerate(phases, 1):
+                print(f"阶段 {i}: {phase['name']} ({phase['chapters']}章)")
+                print(f"       目标: {phase['goal']}")
+
+            modify = input("\n是否修改阶段？(y/n) [n]: ").strip().lower() == 'y'
+            if modify:
+                phases = self._manual_edit_phases(phases, target_chapters)
+        else:
+            num_phases = int(input(f"阶段数量 [{suggested_phases}]: ").strip() or str(suggested_phases))
+            phases = []
+            for i in range(num_phases):
+                print(f"\n--- 第 {i+1} 阶段 ---")
+                name = input(f"阶段名称: ").strip() or f"阶段{i+1}"
+                goal = input(f"阶段目标: ").strip() or "（待定）"
+                chapters = input(f"章节范围（如：1-20）: ").strip()
+                phases.append({'name': name, 'goal': goal, 'chapters': chapters})
+
+        # 第三步：卷纲
+        print("\n" + "="*60)
+        print("  第 3 步：卷纲规划")
+        print("="*60)
+
+        if target_chapters < 100:
+            print(f"\n章节数 < 100，建议不划分卷")
+            need_volumes = input("是否仍要配置卷纲？(y/n) [n]: ").strip().lower() == 'y'
+        else:
+            need_volumes = input(f"\n是否配置卷纲？(y/n) [y]: ").strip().lower() != 'n'
+
+        volumes = []
+        if need_volumes:
+            use_ai_volumes = input("\n让 AI 生成卷纲？(y/n) [y]: ").strip().lower() != 'n'
+
+            if use_ai_volumes:
+                print("\n🤖 AI 正在生成卷纲...")
+                from generate_outline import generate_volume_frameworks
+                volume_frameworks = generate_volume_frameworks(self.config, novel_outline)
+                print(f"✅ 生成了 {len(volume_frameworks)} 卷\n")
+
+                # 显示卷纲
+                for vol in volume_frameworks:
+                    print(f"第{vol.get('chapters', '?')}章: {vol.get('title', '')}")
+                    print(f"  目标: {vol.get('core_goal', '')}")
+                    print(f"  事件: {', '.join(vol.get('key_events', [])[:3])}")
+
+                modify = input("\n是否修改卷纲？(y/n) [n]: ").strip().lower() == 'y'
+                if modify:
+                    volumes = self._manual_edit_volumes(volume_frameworks)
+                else:
+                    # 转换为新格式
+                    for i, vol in enumerate(volume_frameworks):
+                        volumes.append({
+                            'volume': i + 1,
+                            'title': vol.get('title', ''),
+                            'chapters': vol.get('chapters', ''),
+                            'core_goal': vol.get('core_goal', ''),
+                            'key_events': vol.get('key_events', []),
+                            'foreshadowing': vol.get('foreshadowing', []),
+                            'ending_state': vol.get('ending_state', '')
+                        })
+            else:
+                # 手动输入卷纲
+                num_volumes = int(input("卷数: ").strip() or str(target_chapters // 25))
+                chapters_per_volume = target_chapters // num_volumes
+
+                for i in range(num_volumes):
+                    print(f"\n--- 第 {i+1} 卷 ---")
+                    title = input(f"卷标题: ").strip() or f"第{i+1}卷"
+                    start_ch = i * chapters_per_volume + 1
+                    end_ch = (i + 1) * chapters_per_volume if i < num_volumes - 1 else target_chapters
+                    core_goal = input(f"核心目标: ").strip() or "（待定）"
+
+                    print(f"关键事件（用逗号分隔）:")
+                    key_events_str = input("  ").strip()
+                    key_events = [e.strip() for e in key_events_str.split(',') if e.strip()]
+
+                    volumes.append({
+                        'volume': i + 1,
+                        'title': title,
+                        'chapters': f"{start_ch}-{end_ch}",
+                        'core_goal': core_goal,
+                        'key_events': key_events,
+                        'foreshadowing': [],
+                        'ending_state': "（待定）"
+                    })
+
+        # 保存到配置
+        self.config['outline'] = {
+            'synopsis': synopsis,
+            'main_goal': main_goal,
+            'main_conflict': main_conflict,
+            'protagonist_arc': protagonist_arc,
+            'phases': phases
+        }
+        self.config['volumes'] = volumes
+
+        print(f"\n✅ AI 辅助自定义完成！")
+        print(f"   总纲: 已设置")
+        print(f"   阶段: {len(phases)} 个")
+        print(f"   卷纲: {len(volumes)} 卷")
+
+    def _ai_generate_phases(self, novel_outline, target_chapters, num_phases):
+        """让 AI 生成阶段划分"""
+        from langchain_core.messages import HumanMessage
+        from langchain_anthropic import ChatAnthropic
+        import os
+
+        prompt = f"""你是资深小说策划，负责为小说划分阶段。
+
+【小说信息】
+总章节数: {target_chapters} 章
+主目标: {novel_outline.get('main_goal', '')}
+主冲突: {novel_outline.get('main_conflict', '')}
+
+【任务】
+将这 {target_chapters} 章划分为 {num_phases} 个阶段，每个阶段要有明确的目标和章节范围。
+
+【输出格式】严格按以下 JSON 格式输出：
+```json
+[
+  {{"name": "开局阶段", "goal": "建立世界观和角色", "chapters": "1-20"}},
+  {{"name": "发展阶段", "goal": "推进主线冲突", "chapters": "21-60"}},
+  ...
+]
+```
+
+只输出 JSON，不要其他内容。"""
+
+        try:
+            llm = ChatAnthropic(
+                model="claude-sonnet-4-5-20250929",
+                temperature=0.7,
+                anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+                anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+                timeout=60.0
+            )
+
+            response = llm.invoke([HumanMessage(content=prompt)])
+            content = response.content.strip()
+
+            # 提取 JSON
+            if "```json" in content:
+                start = content.find("```json") + 7
+                end = content.find("```", start)
+                json_str = content[start:end].strip()
+            elif "```" in content:
+                start = content.find("```") + 3
+                end = content.find("```", start)
+                json_str = content[start:end].strip()
+            else:
+                json_str = content
+
+            import json
+            phases = json.loads(json_str)
+            return phases
+
+        except Exception as e:
+            print(f"  ⚠️  AI 生成失败: {e}")
+            # 返回默认阶段
+            chapters_per_phase = target_chapters // num_phases
+            phases = []
+            for i in range(num_phases):
+                start = i * chapters_per_phase + 1
+                end = (i + 1) * chapters_per_phase if i < num_phases - 1 else target_chapters
+                phases.append({
+                    'name': f"阶段{i+1}",
+                    'goal': "（请手动设置）",
+                    'chapters': f"{start}-{end}"
+                })
+            return phases
+
+    def _manual_edit_phases(self, phases, target_chapters):
+        """手动编辑阶段"""
+        print("\n编辑阶段（直接回车保持不变）:")
+        edited_phases = []
+        for i, phase in enumerate(phases, 1):
+            print(f"\n--- 阶段 {i} ---")
+            name = input(f"名称 [{phase['name']}]: ").strip() or phase['name']
+            goal = input(f"目标 [{phase['goal']}]: ").strip() or phase['goal']
+            chapters = input(f"章节范围 [{phase['chapters']}]: ").strip() or phase['chapters']
+            edited_phases.append({'name': name, 'goal': goal, 'chapters': chapters})
+        return edited_phases
+
+    def _manual_edit_volumes(self, volume_frameworks):
+        """手动编辑卷纲"""
+        print("\n编辑卷纲（直接回车保持不变）:")
+        edited_volumes = []
+        for i, vol in enumerate(volume_frameworks, 1):
+            print(f"\n--- 第 {i} 卷 ---")
+            title = input(f"标题 [{vol.get('title', '')}]: ").strip() or vol.get('title', '')
+            chapters = input(f"章节 [{vol.get('chapters', '')}]: ").strip() or vol.get('chapters', '')
+            core_goal = input(f"目标 [{vol.get('core_goal', '')}]: ").strip() or vol.get('core_goal', '')
+
+            edited_volumes.append({
+                'volume': i,
+                'title': title,
+                'chapters': chapters,
+                'core_goal': core_goal,
+                'key_events': vol.get('key_events', []),
+                'foreshadowing': vol.get('foreshadowing', []),
+                'ending_state': vol.get('ending_state', '')
+            })
+        return edited_volumes
 
     def step_3_custom_outline(self, target_chapters):
         """步骤3：自定义总纲"""
@@ -451,14 +729,17 @@ class AdvancedNovelConfigurator:
             target_chapters = self.step_2_basic_info()
 
             if outline_mode == '2':
-                # AI 自动生成完整大纲
+                # AI 快速生成完整大纲
                 self.step_3_ai_generate_outline(target_chapters)
                 # AI 已经生成了卷纲，跳过手动输入
             elif outline_mode == '3':
-                # 完全自定义模式
+                # AI 辅助自定义模式（一步步引导）
+                self.step_3_ai_assisted_custom(target_chapters)
+            elif outline_mode == '4':
+                # 完全手动模式
                 self.step_3_custom_outline(target_chapters)
                 self.step_4_volume_planning(target_chapters)
-            elif outline_mode == '4':
+            elif outline_mode == '5':
                 # TODO: 导入大纲
                 print("\n⚠️  导入功能开发中，使用简易模式")
                 synopsis = input("\n故事梗概: ").strip()

@@ -147,7 +147,7 @@ MIT License
 
 ## 👤 作者
 
-WW-shan (212500581@qq.com)
+WW-shan
 
 ---
 

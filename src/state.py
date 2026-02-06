@@ -9,6 +9,9 @@ class NovelState(TypedDict):
     synopsis: str                  # Full synopsis of the novel
     config: Optional[Dict[str, Any]]  # Configuration from user input
 
+    # === 项目管理字段 ===
+    project_paths: Optional[Dict[str, str]]  # 项目路径（db_file, manuscript_dir, bible_dir等）
+
     # === 三层结构字段 ===
     novel_outline: Optional[Dict[str, Any]]        # 总纲（整个小说的大纲）
     volume_frameworks: Optional[List[Dict]]        # 所有卷的框架

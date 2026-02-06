@@ -5,6 +5,7 @@ from src.nodes.planner import planner_node
 from src.nodes.writer import writer_node
 from src.nodes.critic import critic_node
 from src.nodes.memory import memory_update_node
+from src.project_manager import ProjectManager
 import sqlite3
 import json
 import yaml
@@ -147,7 +148,7 @@ def config_to_initial_state(config):
 
     return initial_state
 
-def build_graph(config):
+def build_graph(config, db_path):
     """构建工作流图"""
     from src.utils.memory_strategy import should_use_layered_memory
 
@@ -245,8 +246,7 @@ def build_graph(config):
     else:
         workflow.add_edge("memory", END)
 
-    # 持久化
-    db_path = "/project/novel/novel_state.db"
+    # 持久化（使用项目专属数据库）
     conn = sqlite3.connect(db_path, check_same_thread=False)
     memory = SqliteSaver(conn)
 
@@ -254,9 +254,8 @@ def build_graph(config):
     app = workflow.compile(checkpointer=memory)
     return app
 
-def save_world_bible(world_bible, config):
+def save_world_bible(world_bible, config, bible_dir):
     """保存世界状态"""
-    bible_dir = "/project/novel/bible"
     os.makedirs(bible_dir, exist_ok=True)
 
     novel_title = config['novel']['title']
@@ -279,9 +278,30 @@ if __name__ == "__main__":
         print("Please set it in your .env file")
         sys.exit(1)
 
+    # 初始化项目管理器
+    pm = ProjectManager()
+
+    # 显示当前项目列表
+    pm.print_projects_table()
+
     # 加载配置
     print("\n📖 加载配置文件...")
     config = load_config()
+
+    # 检查是否为已存在项目或新项目
+    current_project = pm.get_current_project()
+    novel_title = config['novel']['title']
+
+    if current_project and current_project['title'] == novel_title:
+        # 使用现有项目
+        print(f"\n🔄 使用现有项目: {novel_title}")
+        project_id = current_project['project_id']
+        paths = pm.get_project_paths(project_id)
+    else:
+        # 创建新项目
+        print(f"\n✨ 创建新项目: {novel_title}")
+        project_id, project_info = pm.create_project(config)
+        paths = pm.get_project_paths(project_id)
 
     print(f"\n✅ 配置加载成功！")
     print(f"   小说标题: {config['novel']['title']}")
@@ -298,12 +318,13 @@ if __name__ == "__main__":
     print(f"   角色自主性: {gen_config['character_autonomy']}")
     print(f"   每次运行都会产生不同的故事发展！")
 
-    # 构建初始状态
+    # 构建初始状态（注入项目路径）
     initial_state = config_to_initial_state(config)
+    initial_state['project_paths'] = paths  # 传递给writer节点使用
 
-    # 构建工作流
+    # 构建工作流（使用项目专属数据库）
     print("\n🔧 构建工作流...")
-    app = build_graph(config)
+    app = build_graph(config, paths['db_file'])
     print("✅ 工作流构建成功")
 
     # 显示故事设定
@@ -330,7 +351,7 @@ if __name__ == "__main__":
     print("="*60)
 
     # 运行工作流
-    thread_id = f"novel_{config['novel']['title']}"
+    thread_id = f"novel_{project_id}"
     config_obj = {"configurable": {"thread_id": thread_id}}
 
     # 检查是否有保存的状态（支持断点续传）
@@ -346,14 +367,13 @@ if __name__ == "__main__":
             print(f"\n🔄 检测到未完成的生成任务")
             print(f"   进度: 已完成 {saved_chapter - 1}/{target_chapters} 章")
             print(f"   将从第 {saved_chapter} 章继续生成")
-            print(f"\n   按 Enter 继续，或 Ctrl+C 退出后删除 novel_state.db 重新开始")
+            print(f"\n   按 Enter 继续，或 Ctrl+C 退出")
 
             try:
                 input()
                 resume_from_checkpoint = True
             except KeyboardInterrupt:
                 print("\n\n❌ 用户取消")
-                print("提示: 删除 novel_state.db 可以重新开始生成")
                 sys.exit(0)
 
     chapter_drafts = []
@@ -389,6 +409,9 @@ if __name__ == "__main__":
                         print(f"  已完成第 {chapter_idx} 章")
                         print(f"  世界状态已更新")
 
+                        # 更新项目进度
+                        pm.update_project_progress(project_id, chapter_idx)
+
                     final_state = node_output
         else:
             # 从头开始新的生成
@@ -419,6 +442,9 @@ if __name__ == "__main__":
                         print(f"  已完成第 {chapter_idx} 章")
                         print(f"  世界状态已更新")
 
+                        # 更新项目进度
+                        pm.update_project_progress(project_id, chapter_idx)
+
                     final_state = node_output
 
         # 生成摘要（章节已在writer节点中实时保存）
@@ -429,19 +455,17 @@ if __name__ == "__main__":
         print(f"✅ 总字数约: {sum(len(d) for d in chapter_drafts) // 2} 字")
 
         print(f"\n📁 文件位置:")
-        novel_title = config['novel']['title']
-        safe_title = "".join(c for c in novel_title if c.isalnum() or c in (' ', '-', '_')).strip()
-        print(f"   章节目录: ./manuscript/{safe_title}/")
+        print(f"   章节目录: {paths['manuscript_dir']}")
 
         # 保存世界状态
         if final_state and 'world_bible' in final_state:
-            bible_file = save_world_bible(final_state['world_bible'], config)
+            bible_file = save_world_bible(final_state['world_bible'], config, paths['bible_dir'])
             print(f"   世界状态: {bible_file}")
 
         print(f"\n💡 下次运行:")
-        print(f"   • 使用相同配置会生成不同的故事发展")
-        print(f"   • 运行 python3 configure_novel.py 创建新配置")
-        print(f"   • 编辑 ./bible/novel_config_latest.yaml 微调设定")
+        print(f"   • 使用相同配置会自动继续此项目")
+        print(f"   • 运行 python3 configure_novel.py 创建新项目")
+        print(f"   • 运行 python3 manage_projects.py 管理所有项目")
 
     except KeyboardInterrupt:
         print("\n\n⚠️  生成已中断")

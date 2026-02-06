@@ -10,13 +10,19 @@ from pathlib import Path
 def save_chapter_to_file(chapter_index, content, state):
     """保存章节到文件"""
     try:
-        # 获取小说标题
-        config = state.get('config', {})
-        novel_info = config.get('novel', {})
-        title = novel_info.get('title', '未命名小说')
+        # 获取项目路径（从state中读取）
+        project_paths = state.get('project_paths', {})
+        manuscript_dir = project_paths.get('manuscript_dir')
+
+        if not manuscript_dir:
+            # 降级方案：使用旧路径
+            config = state.get('config', {})
+            novel_info = config.get('novel', {})
+            title = novel_info.get('title', '未命名小说')
+            manuscript_dir = f"/project/novel/manuscript/{title}"
 
         # 创建输出目录
-        output_dir = Path(f"/project/novel/manuscript/{title}")
+        output_dir = Path(manuscript_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # 生成章节标题（基于内容）

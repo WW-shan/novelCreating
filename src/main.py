@@ -65,12 +65,10 @@ def _ai_generate_outline(novel_config):
 2. main_conflict: 主要冲突（核心矛盾是什么，50字以内）
 3. protagonist_arc: 主角成长弧（从什么状态成长为什么，50字以内）
 
-【输出格式】严格按照以下 JSON 格式输出，不要添加任何其他文字：
-{{
-  "main_goal": "...",
-  "main_conflict": "...",
-  "protagonist_arc": "..."
-}}"""
+【重要】输出纯 JSON，不要使用 markdown 代码块，字段值中不要包含换行符。
+
+【输出格式】
+{{"main_goal": "...", "main_conflict": "...", "protagonist_arc": "..."}}"""
 
     try:
         llm = ChatAnthropic(
@@ -91,7 +89,28 @@ def _ai_generate_outline(novel_config):
         elif "```" in result_text:
             result_text = result_text.split("```")[1].split("```")[0].strip()
 
-        outline = json.loads(result_text)
+        # 🔧 清理可能的问题字符
+        # 移除 BOM 和其他不可见字符
+        result_text = result_text.replace('\ufeff', '').replace('\u200b', '')
+
+        # 尝试解析 JSON
+        try:
+            outline = json.loads(result_text)
+        except json.JSONDecodeError as je:
+            # JSON 解析失败，尝试修复常见问题
+            print(f"     ⚠️  JSON 格式问题，尝试修复...")
+
+            # 移除可能的尾随逗号
+            import re
+            result_text = re.sub(r',(\s*[}\]])', r'\1', result_text)
+
+            # 再次尝试
+            try:
+                outline = json.loads(result_text)
+            except:
+                # 仍然失败，打印调试信息并抛出原始错误
+                print(f"     原始响应: {result_text[:200]}...")
+                raise je
         print(f"   ✅ AI 生成总纲成功")
         return outline
 
@@ -155,7 +174,7 @@ def _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_vol
 【要求】为每一卷生成框架，包含：
 1. title: 卷名（体现该卷核心事件，4-6字，要有创意）
 2. core_goal: 该卷核心目标（20字以内，承接前文）
-3. key_events: 关键事件列表（2-3个具体事件）
+3. key_events: 关键事件列表（2-3个具体事件，每个事件15字以内）
 4. ending_state: 卷末状态（15字以内）
 
 【注意】
@@ -163,16 +182,10 @@ def _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_vol
 - 整体故事要有递进感（前期→中期→后期）
 - 第{batch_start}-{batch_end}卷处于整体进度的{int((batch_start/total_volumes)*100)}-{int((batch_end/total_volumes)*100)}%
 
-【输出格式】严格按照以下 JSON 格式输出 {batch_count} 个卷，不要添加任何其他文字：
-[
-  {{
-    "title": "卷名",
-    "core_goal": "核心目标",
-    "key_events": ["事件1", "事件2"],
-    "ending_state": "卷末状态"
-  }},
-  ...
-]"""
+【重要】输出纯 JSON 数组，不要使用 markdown 代码块，字段值中不要包含换行符。
+
+【输出格式】
+[{{"title": "卷名", "core_goal": "核心目标", "key_events": ["事件1", "事件2"], "ending_state": "卷末状态"}}, ...]"""
 
         try:
             # 动态调整超时时间
@@ -196,7 +209,24 @@ def _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_vol
             elif "```" in result_text:
                 result_text = result_text.split("```")[1].split("```")[0].strip()
 
-            batch_volumes = json.loads(result_text)
+            # 🔧 清理可能的问题字符
+            result_text = result_text.replace('\ufeff', '').replace('\u200b', '')
+
+            # 尝试解析 JSON
+            try:
+                batch_volumes = json.loads(result_text)
+            except json.JSONDecodeError as je:
+                # JSON 解析失败，尝试修复
+                print(f"      ⚠️  JSON 格式问题，尝试修复...")
+                import re
+                result_text = re.sub(r',(\s*[}\]])', r'\1', result_text)
+
+                try:
+                    batch_volumes = json.loads(result_text)
+                except:
+                    # 修复失败，打印调试信息
+                    print(f"      原始响应: {result_text[:150]}...")
+                    raise je
 
             # 转换为标准格式
             for i, vol_data in enumerate(batch_volumes):

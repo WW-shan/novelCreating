@@ -1,9 +1,9 @@
 characters:
-- age: 未知
+- age: '20'
   goal: 生存
   location: 都市
-  name: 角色1
-  occupation: 未知
+  name: 牛逼
+  occupation: 无
   relationships: {}
   status: Alive
   traits: []
@@ -17,26 +17,36 @@ generation:
   randomness_level: medium
   writer_temp: 0.85
 metadata:
-  created_at: '2026-02-06T10:12:42.537156'
+  created_at: '2026-02-06T10:19:29.052926'
   version: '3.0'
 novel:
-  synopsis: '1'
-  target_chapters: 10
-  title: '1'
-  type: '1'
+  synopsis: 牛逼的一声
+  target_chapters: 20
+  title: 牛逼
+  type: 未分类
 outline:
-  main_conflict: （AI 自动生成）
-  main_goal: （AI 自动生成）
+  main_conflict: 主角与环境/对手的冲突
+  main_goal: 完成未分类故事：牛逼的一声
   phases: []
-  protagonist_arc: （AI 自动生成）
-  synopsis: '1'
+  protagonist_arc: 从弱小到强大的成长
+  synopsis: 牛逼的一声
 style:
   is_fanqie_style: true
   pace: fast
   style_name: 番茄爽文（快节奏、爽点密集）
   tone: intense
-volumes: []
+volumes:
+- chapters: 1-20
+  core_goal: 探寻神秘声响的真相与力量源头
+  ending_state: 真相大白，新世界开启
+  foreshadowing: []
+  key_events:
+  - 平凡世界突然响起震撼天地的神秘牛逼之声
+  - 主角因声音觉醒特殊能力并卷入未知事件
+  - 揭开声音背后隐藏的惊天秘密
+  title: 惊世一鸣
+  volume: 1
 worldbuilding:
-  era: 现代
+  era: 都市
   power_system: 无
   setting: 都市

@@ -105,94 +105,161 @@ def _ai_generate_outline(novel_config):
 
 
 def _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_volumes):
-    """使用 AI 生成卷纲框架"""
+    """使用 AI 生成卷纲框架（分批生成避免超时）"""
     from langchain_anthropic import ChatAnthropic
     from langchain_core.messages import HumanMessage
+    import time
 
     synopsis = novel_config.get('synopsis', '')
     novel_type = novel_config.get('type', '未知')
     main_goal = novel_outline.get('main_goal', '')
 
-    prompt = f"""你是资深网文编辑，根据以下信息生成卷纲框架：
+    # 🔧 策略：每批最多生成 6-8 个卷，分批调用 AI
+    batch_size = 7  # 每批7个卷
+    total_batches = (total_volumes + batch_size - 1) // batch_size
+
+    if total_volumes > batch_size:
+        print(f"   📊 卷数较多({total_volumes}卷)，分 {total_batches} 批生成")
+
+    all_volumes = []
+
+    for batch_idx in range(total_batches):
+        batch_start = batch_idx * batch_size + 1
+        batch_end = min((batch_idx + 1) * batch_size, total_volumes)
+        batch_count = batch_end - batch_start + 1
+
+        print(f"   🤖 批次 {batch_idx+1}/{total_batches}: 生成第 {batch_start}-{batch_end} 卷...")
+
+        # 构建该批次的上下文
+        if batch_idx > 0:
+            # 如果不是第一批，提供前面卷的信息作为上下文
+            prev_volumes_context = "\n".join([
+                f"第{i+1}卷《{v['title']}》: {v['core_goal']}"
+                for i, v in enumerate(all_volumes[-3:])  # 只取最近3卷
+            ])
+            context_info = f"\n【前面卷概况】\n{prev_volumes_context}\n"
+        else:
+            context_info = ""
+
+        prompt = f"""你是资深网文编辑，根据以下信息生成卷纲框架：
 
 【小说信息】
 类型: {novel_type}
 梗概: {synopsis}
 主线目标: {main_goal}
 总章节数: {target_chapters}
-需要划分为: {total_volumes} 卷（每卷约25章）
+总卷数: {total_volumes}
+{context_info}
+【本批任务】生成第 {batch_start} 到第 {batch_end} 卷（共{batch_count}卷，每卷约25章）
 
-【任务】为每一卷生成框架，包含：
-1. title: 卷名（体现该卷核心事件，5-8字）
-2. core_goal: 该卷核心目标（这一卷主角要完成什么，30字以内）
-3. key_events: 关键事件列表（3-5个重要情节点）
-4. ending_state: 卷末状态（该卷结束时的状态，20字以内）
+【要求】为每一卷生成框架，包含：
+1. title: 卷名（体现该卷核心事件，4-6字，要有创意）
+2. core_goal: 该卷核心目标（20字以内，承接前文）
+3. key_events: 关键事件列表（2-3个具体事件）
+4. ending_state: 卷末状态（15字以内）
 
-【输出格式】严格按照以下 JSON 格式输出 {total_volumes} 个卷，不要添加任何其他文字：
+【注意】
+- 卷名要有创意，不要用"第X卷"这种格式
+- 整体故事要有递进感（前期→中期→后期）
+- 第{batch_start}-{batch_end}卷处于整体进度的{int((batch_start/total_volumes)*100)}-{int((batch_end/total_volumes)*100)}%
+
+【输出格式】严格按照以下 JSON 格式输出 {batch_count} 个卷，不要添加任何其他文字：
 [
   {{
     "title": "卷名",
     "core_goal": "核心目标",
-    "key_events": ["事件1", "事件2", "事件3"],
+    "key_events": ["事件1", "事件2"],
     "ending_state": "卷末状态"
   }},
   ...
 ]"""
 
-    try:
-        llm = ChatAnthropic(
-            model="claude-sonnet-4-5-20250929",
-            temperature=0.7,
-            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
-            anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
-            timeout=45.0,
-            max_retries=2
-        )
+        try:
+            # 动态调整超时时间
+            timeout = min(30.0 + batch_count * 6, 60.0)
 
-        response = llm.invoke([HumanMessage(content=prompt)])
-        result_text = response.content.strip()
+            llm = ChatAnthropic(
+                model="claude-sonnet-4-5-20250929",
+                temperature=0.7,
+                anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+                anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+                timeout=timeout,
+                max_retries=1
+            )
 
-        # 提取 JSON
-        if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0].strip()
+            response = llm.invoke([HumanMessage(content=prompt)])
+            result_text = response.content.strip()
 
-        volumes_data = json.loads(result_text)
+            # 提取 JSON
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0].strip()
 
-        # 转换为标准格式并添加章节范围
-        volume_frameworks = []
-        for vol_idx, vol_data in enumerate(volumes_data, 1):
-            start_ch = (vol_idx - 1) * 25 + 1
-            end_ch = min(vol_idx * 25, target_chapters)
+            batch_volumes = json.loads(result_text)
 
-            volume_frameworks.append({
-                'title': vol_data.get('title', f'第{vol_idx}卷'),
-                'chapters': f'{start_ch}-{end_ch}',
-                'core_goal': vol_data.get('core_goal', '推进主线'),
-                'key_events': vol_data.get('key_events', []),
-                'ending_state': vol_data.get('ending_state', '待续'),
-                'foreshadowing': []  # 初始为空
-            })
+            # 转换为标准格式
+            for i, vol_data in enumerate(batch_volumes):
+                vol_idx = batch_start + i
+                start_ch = (vol_idx - 1) * 25 + 1
+                end_ch = min(vol_idx * 25, target_chapters)
 
-        print(f"   ✅ AI 生成 {len(volume_frameworks)} 个卷框架成功")
-        return volume_frameworks
+                all_volumes.append({
+                    'title': vol_data.get('title', f'第{vol_idx}卷'),
+                    'chapters': f'{start_ch}-{end_ch}',
+                    'core_goal': vol_data.get('core_goal', '推进主线'),
+                    'key_events': vol_data.get('key_events', []),
+                    'ending_state': vol_data.get('ending_state', '待续'),
+                    'foreshadowing': []
+                })
 
-    except Exception as e:
-        print(f"   ⚠️  AI 生成失败: {str(e)[:50]}，使用简化版本")
-        volume_frameworks = []
-        for vol_idx in range(1, total_volumes + 1):
-            start_ch = (vol_idx - 1) * 25 + 1
-            end_ch = min(vol_idx * 25, target_chapters)
-            volume_frameworks.append({
-                'title': f'第{vol_idx}卷',
-                'chapters': f'{start_ch}-{end_ch}',
-                'core_goal': f'推进{novel_type}主线，达成阶段性目标',
-                'key_events': ['关键冲突', '重要转折', '阶段性胜利'],
-                'ending_state': f'第{vol_idx}阶段完成',
-                'foreshadowing': []
-            })
-        return volume_frameworks
+            print(f"      ✅ 成功生成 {len(batch_volumes)} 个卷")
+
+            # 批次间稍微延迟，避免 API 限流
+            if batch_idx < total_batches - 1:
+                time.sleep(1.5)
+
+        except Exception as e:
+            error_msg = str(e)
+            print(f"      ⚠️  批次生成失败: {error_msg[:40]}")
+
+            # 该批次降级方案
+            for i in range(batch_count):
+                vol_idx = batch_start + i
+                start_ch = (vol_idx - 1) * 25 + 1
+                end_ch = min(vol_idx * 25, target_chapters)
+
+                # 根据卷的位置确定阶段
+                progress = vol_idx / total_volumes
+                if progress <= 0.3:
+                    stage_name = ["萌芽", "起步", "初探", "试炼", "成长"][i % 5]
+                    stage = "前期"
+                    goal = f"建立基础，初步了解{novel_type}世界"
+                    events = ['初次冲突', '结识盟友', '获得机遇']
+                elif progress <= 0.7:
+                    stage_name = ["风云", "激荡", "对抗", "突破", "崛起"][i % 5]
+                    stage = "中期"
+                    goal = f"提升实力，应对{novel_type}挑战"
+                    events = ['强敌现身', '激烈较量', '重大转折']
+                else:
+                    stage_name = ["巅峰", "决战", "终局", "归来", "超越"][i % 5]
+                    stage = "后期"
+                    goal = f"接近目标，解决{novel_type}核心矛盾"
+                    events = ['最终对决', '真相大白', '完成使命']
+
+                all_volumes.append({
+                    'title': f'{stage_name}之章',
+                    'chapters': f'{start_ch}-{end_ch}',
+                    'core_goal': goal,
+                    'key_events': events,
+                    'ending_state': f'{stage}完成',
+                    'foreshadowing': []
+                })
+
+            print(f"      📝 使用降级方案生成 {batch_count} 个卷")
+
+    print(f"   ✅ 共生成 {len(all_volumes)} 个卷框架")
+    return all_volumes
 
 
 def config_to_initial_state(config, paths=None):

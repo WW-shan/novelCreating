@@ -32,3 +32,8 @@ output/
 manuscript/
 recovered_chapter_*.md
 recovered_chapter_*.txt
+
+# Multi-project system - ignore all project data
+projects/*/
+!projects/projects_index.json
+!projects/current_project.txt

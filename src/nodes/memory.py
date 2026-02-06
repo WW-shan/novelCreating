@@ -320,44 +320,44 @@ def update_bible_with_parsed_data(world_bible, parsed_data, chapter_index, state
                         updated_bible["characters"][char_name]["recent_notes"][-MAX_RECENT_NOTES:]
 
     # 处理已解决的伏笔（先移除再添加新的）
-    resolved_plot_threads = parsed_data.get(\"resolved_plot_threads\", [])
-    hot_memory = state.get(\"hot_memory\") if state else None
+    resolved_plot_threads = parsed_data.get("resolved_plot_threads", [])
+    hot_memory = state.get("hot_memory") if state else None
 
     if resolved_plot_threads:
         print(f"  🎯 检测到 {len(resolved_plot_threads)} 个已解决的伏笔")
 
         if hot_memory is not None:
             # Long mode: plot_threads is dict with "active" key
-            if \"plot_threads\" in updated_bible and \"active\" in updated_bible[\"plot_threads\"]:
-                active_threads = updated_bible[\"plot_threads\"][\"active\"]
+            if "plot_threads" in updated_bible and "active" in updated_bible["plot_threads"]:
+                active_threads = updated_bible["plot_threads"]["active"]
                 resolved_count = 0
 
                 # 标记匹配的伏笔为已解决
                 for resolved_keyword in resolved_plot_threads:
                     for thread in active_threads:
                         if isinstance(thread, dict):
-                            thread_text = thread.get(\"text\", \"\")
+                            thread_text = thread.get("text", "")
                             # 如果伏笔文本包含关键词，标记为已解决
-                            if resolved_keyword in thread_text and not thread.get(\"resolved\", False):
-                                thread[\"resolved\"] = True
-                                thread[\"resolved_at\"] = chapter_index
+                            if resolved_keyword in thread_text and not thread.get("resolved", False):
+                                thread["resolved"] = True
+                                thread["resolved_at"] = chapter_index
                                 resolved_count += 1
                                 print(f"    ✓ 解决伏笔: {thread_text[:40]}...")
 
                 # 移除已解决的伏笔
-                updated_bible[\"plot_threads\"][\"active\"] = [
-                    t for t in active_threads if not t.get(\"resolved\", False)
+                updated_bible["plot_threads"]["active"] = [
+                    t for t in active_threads if not t.get("resolved", False)
                 ]
 
                 if resolved_count > 0:
                     print(f"  ✅ 共解决 {resolved_count} 个伏笔，移除后剩余 {len(updated_bible['plot_threads']['active'])} 个")
         else:
             # Short mode: plot_threads is a list of strings
-            if \"plot_threads\" in updated_bible and isinstance(updated_bible[\"plot_threads\"], list):
+            if "plot_threads" in updated_bible and isinstance(updated_bible["plot_threads"], list):
                 remaining_threads = []
                 resolved_count = 0
 
-                for thread in updated_bible[\"plot_threads\"]:
+                for thread in updated_bible["plot_threads"]:
                     thread_text = thread if isinstance(thread, str) else str(thread)
                     # 检查是否匹配任何已解决的关键词
                     is_resolved = any(keyword in thread_text for keyword in resolved_plot_threads)
@@ -368,7 +368,7 @@ def update_bible_with_parsed_data(world_bible, parsed_data, chapter_index, state
                         resolved_count += 1
                         print(f"    ✓ 解决伏笔: {thread_text[:40]}...")
 
-                updated_bible[\"plot_threads\"] = remaining_threads
+                updated_bible["plot_threads"] = remaining_threads
 
                 if resolved_count > 0:
                     print(f"  ✅ 共解决 {resolved_count} 个伏笔，移除后剩余 {len(remaining_threads)} 个")

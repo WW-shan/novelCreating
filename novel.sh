@@ -52,15 +52,22 @@ generate_novel() {
     echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}"
     echo
 
-    # 检查配置文件
-    if [ ! -f "bible/novel_config_latest.yaml" ]; then
-        echo -e "${RED}❌ 未找到配置文件${NC}"
+    # 检查是否有项目（使用Python检查）
+    source venv/bin/activate
+    HAS_PROJECT=$(python3 -c "
+from src.project_manager import ProjectManager
+pm = ProjectManager()
+projects = pm.list_projects()
+print('yes' if projects else 'no')
+" 2>/dev/null)
+
+    if [ "$HAS_PROJECT" != "yes" ]; then
+        echo -e "${RED}❌ 未找到任何项目${NC}"
         echo "请先运行: ./novel.sh new"
         exit 1
     fi
 
     # 激活虚拟环境并运行
-    source venv/bin/activate
     PYTHONPATH=/project/novel python3 src/main.py
 }
 
@@ -104,17 +111,23 @@ show_status() {
         echo -e "${RED}❌ 虚拟环境不存在${NC}"
     fi
 
-    # 检查配置
-    if [ -f "bible/novel_config_latest.yaml" ]; then
-        echo -e "${GREEN}✅ 配置文件存在${NC}"
+    # 检查项目（使用Python检查）
+    source venv/bin/activate 2>/dev/null
+    PROJECT_COUNT=$(python3 -c "
+from src.project_manager import ProjectManager
+pm = ProjectManager()
+print(len(pm.list_projects()))
+" 2>/dev/null)
+
+    if [ "$PROJECT_COUNT" -gt 0 ]; then
+        echo -e "${GREEN}✅ 已有 $PROJECT_COUNT 个项目${NC}"
     else
-        echo -e "${YELLOW}⚠️  配置文件不存在${NC}"
+        echo -e "${YELLOW}⚠️  暂无项目（运行 ./novel.sh new 创建）${NC}"
     fi
 
     echo
 
     # 显示项目列表
-    source venv/bin/activate 2>/dev/null
     python3 -c "
 from src.project_manager import ProjectManager
 pm = ProjectManager()

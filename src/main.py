@@ -19,12 +19,23 @@ env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
 load_dotenv(dotenv_path=env_path)
 
 def load_config():
-    """加载配置文件"""
-    config_path = '/project/novel/bible/novel_config_latest.yaml'
+    """加载配置文件（优先从当前项目加载）"""
+    # 🔧 优先从当前项目加载
+    pm = ProjectManager()
+    current_project = pm.get_current_project()
+
+    if current_project:
+        # 从项目目录加载
+        config_path = current_project['config_file']
+        print(f"   从项目加载: {current_project['title']}")
+    else:
+        # 回退到旧路径（兼容性）
+        config_path = '/project/novel/bible/novel_config_latest.yaml'
+        print(f"   从默认位置加载配置")
 
     if not os.path.exists(config_path):
         print("⚠️  未找到配置文件！")
-        print("请先运行: python3 configure_novel.py")
+        print("请先运行: ./novel.sh new")
         sys.exit(1)
 
     with open(config_path, 'r', encoding='utf-8') as f:

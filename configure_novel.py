@@ -413,16 +413,7 @@ class NovelConfigurator:
             print("❌ 配置未保存")
             return False
 
-        # 保存为默认配置（用于main.py读取）
-        default_path = '/project/novel/bible/novel_config_latest.yaml'
-        os.makedirs('/project/novel/bible', exist_ok=True)
-
-        with open(default_path, 'w', encoding='utf-8') as f:
-            yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False)
-
-        print(f"\n✅ 配置已保存到：{default_path}")
-
-        # 🔧 立即创建项目（不等main.py）
+        # 🔧 直接创建项目（项目专属配置）
         from src.project_manager import ProjectManager
         pm = ProjectManager()
 
@@ -430,16 +421,29 @@ class NovelConfigurator:
             project_id, project_info = pm.create_project(self.config)
             print(f"\n✅ 项目已创建：{project_info['title']}")
             print(f"   项目ID: {project_id}")
-            print(f"   位置: projects/{project_id}/")
+            print(f"   配置文件: projects/{project_id}/config.yaml")
+            print(f"   数据库: projects/{project_id}/state.db")
+            print(f"   稿件目录: projects/{project_id}/manuscript/")
         except Exception as e:
             # 如果项目已存在，不报错
             if "已存在" in str(e):
                 print(f"\n✅ 项目已存在：{self.config['novel']['title']}")
+                print(f"   配置已更新到: projects/{self.config['novel']['title']}/config.yaml")
             else:
-                print(f"\n⚠️  项目创建警告: {e}")
+                print(f"\n❌ 项目创建失败: {e}")
+                return False
+
+        # 💡 兼容性：同时保存到旧位置（供老版本main.py使用）
+        # 未来版本可以移除这部分
+        default_path = '/project/novel/bible/novel_config_latest.yaml'
+        os.makedirs('/project/novel/bible', exist_ok=True)
+        with open(default_path, 'w', encoding='utf-8') as f:
+            yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False)
 
         print(f"\n💡 下一步：")
-        print(f"   运行 python3 main.py 或 ./novel.sh generate 开始生成")
+        print(f"   ./novel.sh generate  # 开始生成章节")
+        print(f"   ./novel.sh projects  # 管理所有项目")
+        print(f"   ./novel.sh status    # 查看系统状态")
 
         return True
 

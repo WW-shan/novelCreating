@@ -1,1 +1,15 @@
-{}
+{
+  "探案": {
+    "title": "探案",
+    "project_id": "探案",
+    "created_at": "2026-02-06T08:46:32.543514",
+    "updated_at": "2026-02-06T08:46:32.543544",
+    "config_file": "/project/novel/projects/探案/config.yaml",
+    "db_file": "/project/novel/projects/探案/state.db",
+    "manuscript_dir": "/project/novel/projects/探案/manuscript",
+    "bible_dir": "/project/novel/projects/探案/bible",
+    "target_chapters": 500,
+    "current_chapter": 0,
+    "status": "created"
+  }
+}

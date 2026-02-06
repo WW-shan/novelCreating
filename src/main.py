@@ -43,6 +43,158 @@ def load_config():
 
     return config
 
+
+def _ai_generate_outline(novel_config):
+    """使用 AI 生成故事总纲"""
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.messages import HumanMessage
+
+    synopsis = novel_config.get('synopsis', '')
+    novel_type = novel_config.get('type', '未知')
+    target_chapters = novel_config.get('target_chapters', 1)
+
+    prompt = f"""你是资深网文编辑，根据以下信息生成故事总纲：
+
+【小说信息】
+类型: {novel_type}
+梗概: {synopsis}
+目标章节数: {target_chapters}
+
+【任务】生成故事总纲，包含：
+1. main_goal: 主线目标（主角要达成什么，50字以内）
+2. main_conflict: 主要冲突（核心矛盾是什么，50字以内）
+3. protagonist_arc: 主角成长弧（从什么状态成长为什么，50字以内）
+
+【输出格式】严格按照以下 JSON 格式输出，不要添加任何其他文字：
+{{
+  "main_goal": "...",
+  "main_conflict": "...",
+  "protagonist_arc": "..."
+}}"""
+
+    try:
+        llm = ChatAnthropic(
+            model="claude-sonnet-4-5-20250929",
+            temperature=0.7,
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+            anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+            timeout=30.0,
+            max_retries=2
+        )
+
+        response = llm.invoke([HumanMessage(content=prompt)])
+        result_text = response.content.strip()
+
+        # 提取 JSON（可能被代码块包裹）
+        if "```json" in result_text:
+            result_text = result_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in result_text:
+            result_text = result_text.split("```")[1].split("```")[0].strip()
+
+        outline = json.loads(result_text)
+        print(f"   ✅ AI 生成总纲成功")
+        return outline
+
+    except Exception as e:
+        print(f"   ⚠️  AI 生成失败: {str(e)[:50]}，使用简化版本")
+        return {
+            'main_goal': f"完成{novel_type}故事：{synopsis[:50]}",
+            'main_conflict': '主角与环境/对手的冲突',
+            'protagonist_arc': '从弱小到强大的成长'
+        }
+
+
+def _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_volumes):
+    """使用 AI 生成卷纲框架"""
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.messages import HumanMessage
+
+    synopsis = novel_config.get('synopsis', '')
+    novel_type = novel_config.get('type', '未知')
+    main_goal = novel_outline.get('main_goal', '')
+
+    prompt = f"""你是资深网文编辑，根据以下信息生成卷纲框架：
+
+【小说信息】
+类型: {novel_type}
+梗概: {synopsis}
+主线目标: {main_goal}
+总章节数: {target_chapters}
+需要划分为: {total_volumes} 卷（每卷约25章）
+
+【任务】为每一卷生成框架，包含：
+1. title: 卷名（体现该卷核心事件，5-8字）
+2. core_goal: 该卷核心目标（这一卷主角要完成什么，30字以内）
+3. key_events: 关键事件列表（3-5个重要情节点）
+4. ending_state: 卷末状态（该卷结束时的状态，20字以内）
+
+【输出格式】严格按照以下 JSON 格式输出 {total_volumes} 个卷，不要添加任何其他文字：
+[
+  {{
+    "title": "卷名",
+    "core_goal": "核心目标",
+    "key_events": ["事件1", "事件2", "事件3"],
+    "ending_state": "卷末状态"
+  }},
+  ...
+]"""
+
+    try:
+        llm = ChatAnthropic(
+            model="claude-sonnet-4-5-20250929",
+            temperature=0.7,
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+            anthropic_api_url=os.getenv("ANTHROPIC_BASE_URL"),
+            timeout=45.0,
+            max_retries=2
+        )
+
+        response = llm.invoke([HumanMessage(content=prompt)])
+        result_text = response.content.strip()
+
+        # 提取 JSON
+        if "```json" in result_text:
+            result_text = result_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in result_text:
+            result_text = result_text.split("```")[1].split("```")[0].strip()
+
+        volumes_data = json.loads(result_text)
+
+        # 转换为标准格式并添加章节范围
+        volume_frameworks = []
+        for vol_idx, vol_data in enumerate(volumes_data, 1):
+            start_ch = (vol_idx - 1) * 25 + 1
+            end_ch = min(vol_idx * 25, target_chapters)
+
+            volume_frameworks.append({
+                'title': vol_data.get('title', f'第{vol_idx}卷'),
+                'chapters': f'{start_ch}-{end_ch}',
+                'core_goal': vol_data.get('core_goal', '推进主线'),
+                'key_events': vol_data.get('key_events', []),
+                'ending_state': vol_data.get('ending_state', '待续'),
+                'foreshadowing': []  # 初始为空
+            })
+
+        print(f"   ✅ AI 生成 {len(volume_frameworks)} 个卷框架成功")
+        return volume_frameworks
+
+    except Exception as e:
+        print(f"   ⚠️  AI 生成失败: {str(e)[:50]}，使用简化版本")
+        volume_frameworks = []
+        for vol_idx in range(1, total_volumes + 1):
+            start_ch = (vol_idx - 1) * 25 + 1
+            end_ch = min(vol_idx * 25, target_chapters)
+            volume_frameworks.append({
+                'title': f'第{vol_idx}卷',
+                'chapters': f'{start_ch}-{end_ch}',
+                'core_goal': f'推进{novel_type}主线，达成阶段性目标',
+                'key_events': ['关键冲突', '重要转折', '阶段性胜利'],
+                'ending_state': f'第{vol_idx}阶段完成',
+                'foreshadowing': []
+            })
+        return volume_frameworks
+
+
 def config_to_initial_state(config, paths=None):
     """将配置转换为初始状态"""
     from src.utils.memory_strategy import get_memory_strategy
@@ -141,36 +293,21 @@ def config_to_initial_state(config, paths=None):
         if novel_outline or volume_frameworks:
             print(f"  📖 加载配置中的大纲字段")
 
-        # 如果配置中缺少总纲，生成默认总纲
+        # 如果配置中缺少总纲，使用 AI 生成
         auto_generated = False  # 标记是否自动生成
         if not novel_outline:
-            print(f"\n⚠️  配置中缺少总纲，使用默认结构")
-            novel_outline = {
-                'main_goal': f"完成故事：{novel_config['synopsis'][:100]}",
-                'main_conflict': '待定（建议在配置中添加）',
-                'protagonist_arc': '待定（建议在配置中添加）'
-            }
+            print(f"\n🤖 配置中缺少总纲，使用 AI 自动生成...")
+            novel_outline = _ai_generate_outline(novel_config)
             auto_generated = True
 
-        # 如果配置中缺少卷纲，生成默认卷纲
+        # 如果配置中缺少卷纲，使用 AI 生成
         if not volume_frameworks:
             target_chapters = novel_config.get('target_chapters', 1)
             total_volumes = (target_chapters + 24) // 25  # 向上取整
 
             if total_volumes > 0:
-                print(f"⚠️  配置中缺少卷纲，生成 {total_volumes} 个默认卷框架")
-                volume_frameworks = []
-                for vol_idx in range(1, total_volumes + 1):
-                    start_ch = (vol_idx - 1) * 25 + 1
-                    end_ch = min(vol_idx * 25, target_chapters)
-                    volume_frameworks.append({
-                        'title': f'第{vol_idx}卷',
-                        'chapters': f'{start_ch}-{end_ch}',
-                        'core_goal': '待定（建议在配置中添加）',
-                        'key_events': [],
-                        'ending_state': '待定',
-                        'foreshadowing': []
-                    })
+                print(f"🤖 配置中缺少卷纲，使用 AI 生成 {total_volumes} 个卷框架...")
+                volume_frameworks = _ai_generate_volumes(novel_config, novel_outline, target_chapters, total_volumes)
                 auto_generated = True
 
         # 🔧 新增：如果是自动生成的，保存到 outline.yaml

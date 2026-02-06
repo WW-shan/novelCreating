@@ -37,11 +37,12 @@ class AdvancedNovelConfigurator:
         self.print_header("步骤 1/8: 选择大纲模式")
 
         print("\n请选择大纲配置方式：")
-        print("  1. 简易模式（只需梗概，AI 自动规划）")
-        print("  2. 完整大纲（自定义总纲和卷纲）- 推荐用于长篇")
-        print("  3. 导入现有大纲（从文件导入）")
+        print("  1. 简易模式（只需梗概，AI 自动规划）- 推荐！")
+        print("  2. AI 自动生成（完整总纲+卷纲，每卷25章）")
+        print("  3. 完整自定义（手动输入所有内容）")
+        print("  4. 导入现有大纲（从文件导入）")
 
-        choice = input("\n请选择 (1-3) [1]: ").strip() or "1"
+        choice = input("\n请选择 (1-4) [1]: ").strip() or "1"
 
         return choice
 
@@ -65,6 +66,82 @@ class AdvancedNovelConfigurator:
         }
 
         return target_chapters
+
+    def step_3_ai_generate_outline(self, target_chapters):
+        """步骤3：AI 自动生成完整大纲"""
+        self.print_header("步骤 3/8: AI 自动生成大纲")
+
+        print("\n🤖 AI 将自动生成：")
+        print("  - 总纲（主目标、主冲突、成长弧）")
+        print("  - 里程碑（3-5个关键节点）")
+        print(f"  - 卷纲（共 {(target_chapters + 24) // 25} 卷，每卷25章）")
+
+        confirm = input("\n确认开始生成？(y/n) [y]: ").strip().lower()
+        if confirm == 'n':
+            print("已取消，将使用简易模式")
+            synopsis = input("\n故事梗概: ").strip()
+            self.config['novel']['synopsis'] = synopsis
+            self.config['outline'] = {
+                'synopsis': synopsis,
+                'main_goal': "（AI 自动生成）",
+                'main_conflict': "（AI 自动生成）",
+                'protagonist_arc': "（AI 自动生成）",
+                'phases': []
+            }
+            self.config['volumes'] = []
+            return
+
+        # 导入 generate_outline 的功能
+        from generate_outline import generate_novel_outline, generate_volume_frameworks
+
+        print("\n🤖 AI 正在生成总纲...")
+        novel_outline = generate_novel_outline(self.config)
+        print("✅ 总纲生成完成")
+
+        print("\n🤖 AI 正在生成卷纲...")
+        volume_frameworks = generate_volume_frameworks(self.config, novel_outline)
+        print("✅ 卷纲生成完成")
+
+        # 转换为新格式
+        self.config['outline'] = {
+            'synopsis': self.config['novel']['synopsis'],
+            'main_goal': novel_outline.get('main_goal', ''),
+            'main_conflict': novel_outline.get('main_conflict', ''),
+            'protagonist_arc': novel_outline.get('protagonist_arc', ''),
+            'phases': []
+        }
+
+        # 转换 key_milestones 为 phases
+        milestones = novel_outline.get('key_milestones', [])
+        if milestones:
+            phases = []
+            for i, ms in enumerate(milestones):
+                prev_chapter = milestones[i-1]['target_chapter'] + 1 if i > 0 else 1
+                curr_chapter = ms['target_chapter']
+                phases.append({
+                    'name': f"阶段{i+1}",
+                    'goal': ms['milestone'],
+                    'chapters': f"{prev_chapter}-{curr_chapter}"
+                })
+            self.config['outline']['phases'] = phases
+
+        # 转换 volume_frameworks
+        volumes = []
+        for vol in volume_frameworks:
+            volumes.append({
+                'volume': len(volumes) + 1,
+                'title': vol.get('title', ''),
+                'chapters': vol.get('chapters', ''),
+                'core_goal': vol.get('core_goal', ''),
+                'key_events': vol.get('key_events', []),
+                'foreshadowing': vol.get('foreshadowing', []),
+                'ending_state': vol.get('ending_state', '')
+            })
+        self.config['volumes'] = volumes
+
+        print(f"\n✅ AI 生成完成！")
+        print(f"   总纲: {len(phases)} 个阶段")
+        print(f"   卷纲: {len(volumes)} 卷")
 
     def step_3_custom_outline(self, target_chapters):
         """步骤3：自定义总纲"""
@@ -374,15 +451,28 @@ class AdvancedNovelConfigurator:
             target_chapters = self.step_2_basic_info()
 
             if outline_mode == '2':
-                # 完整大纲模式
+                # AI 自动生成完整大纲
+                self.step_3_ai_generate_outline(target_chapters)
+                # AI 已经生成了卷纲，跳过手动输入
+            elif outline_mode == '3':
+                # 完全自定义模式
                 self.step_3_custom_outline(target_chapters)
                 self.step_4_volume_planning(target_chapters)
-            elif outline_mode == '3':
+            elif outline_mode == '4':
                 # TODO: 导入大纲
                 print("\n⚠️  导入功能开发中，使用简易模式")
-                self.step_3_custom_outline(target_chapters)
+                synopsis = input("\n故事梗概: ").strip()
+                self.config['novel']['synopsis'] = synopsis
+                self.config['outline'] = {
+                    'synopsis': synopsis,
+                    'main_goal': "（AI 自动生成）",
+                    'main_conflict': "（AI 自动生成）",
+                    'protagonist_arc': "（AI 自动生成）",
+                    'phases': []
+                }
+                self.config['volumes'] = []
             else:
-                # 简易模式
+                # 简易模式（默认）
                 synopsis = input("\n故事梗概: ").strip()
                 self.config['novel']['synopsis'] = synopsis
                 self.config['outline'] = {

@@ -26,18 +26,15 @@ show_help() {
 
 📖 主要命令:
   generate      生成小说（使用当前项目）
-  new           创建新的小说项目
+  new           创建新的小说项目（支持AI自动生成大纲）
   projects      管理所有项目（切换/删除/查看）
-  outline       生成/查看总纲和卷纲（AI 自动生成）
-  config        创建新配置（旧命令，推荐用new）
 
 🛠️  维护命令:
   status        查看系统和项目状态
   help          显示此帮助信息
 
 📚 使用示例:
-  ./novel.sh new          # 创建新项目
-  ./novel.sh outline      # 生成大纲（可选）
+  ./novel.sh new          # 创建新项目（可选AI生成大纲）
   ./novel.sh generate     # 生成章节
   ./novel.sh projects     # 管理项目
 
@@ -82,7 +79,7 @@ new_project() {
     echo
 
     source venv/bin/activate
-    python3 configure_novel.py
+    python3 configure_novel_advanced.py
 
     echo
     echo -e "${GREEN}✅ 项目创建完成${NC}"
@@ -163,7 +160,16 @@ case "${1:-help}" in
         manage_projects
         ;;
     outline|out|o)
-        generate_outline
+        # 旧命令，提示使用新方式
+        echo -e "${YELLOW}╔══════════════════════════════════════════════════════════════╗${NC}"
+        echo -e "${YELLOW}║                                                              ║${NC}"
+        echo -e "${YELLOW}║  ⚠️  outline 命令已整合到 new 命令中                        ║${NC}"
+        echo -e "${YELLOW}║                                                              ║${NC}"
+        echo -e "${YELLOW}╚══════════════════════════════════════════════════════════════╝${NC}"
+        echo
+        echo "请使用: ./novel.sh new"
+        echo "然后选择 '2. AI 自动生成（完整总纲+卷纲）'"
+        echo
         ;;
     config|cfg)
         # 兼容旧命令

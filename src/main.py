@@ -108,9 +108,34 @@ def config_to_initial_state(config):
                 "active": []
             }
 
-        # 获取或生成总纲和卷纲
-        novel_outline = config.get('novel_outline', {})
-        volume_frameworks = config.get('volume_frameworks', [])
+        # 🔧 获取或生成总纲和卷纲（支持新旧两种格式）
+        # 优先从 bible/outline.yaml 读取，否则从 config 读取
+        novel_outline = None
+        volume_frameworks = None
+
+        # 尝试从 bible/outline.yaml 读取（新格式）
+        bible_dir = paths.get('bible_dir')
+        if bible_dir:
+            outline_file = os.path.join(bible_dir, 'outline.yaml')
+            if os.path.exists(outline_file):
+                try:
+                    import yaml
+                    with open(outline_file, 'r', encoding='utf-8') as f:
+                        outline_data = yaml.safe_load(f)
+                    novel_outline = outline_data.get('outline', {})
+                    volume_frameworks = outline_data.get('volumes', [])
+                    print(f"  📖 加载独立大纲文件: outline.yaml")
+                except Exception as e:
+                    print(f"  ⚠️  读取 outline.yaml 失败: {e}")
+
+        # 回退到配置文件中的字段（旧格式）
+        if novel_outline is None:
+            novel_outline = config.get('novel_outline', {})
+        if volume_frameworks is None:
+            volume_frameworks = config.get('volume_frameworks', [])
+
+        if novel_outline or volume_frameworks:
+            print(f"  📖 加载配置中的大纲字段")
 
         # 如果配置中缺少总纲，生成默认总纲
         if not novel_outline:

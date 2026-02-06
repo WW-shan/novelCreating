@@ -72,10 +72,11 @@ class AdvancedNovelConfigurator:
         """步骤3：AI 自动生成完整大纲"""
         self.print_header("步骤 3/8: AI 自动生成大纲")
 
+        total_volumes = (target_chapters + 24) // 25
+
         print("\n🤖 AI 将自动生成：")
         print("  - 总纲（主目标、主冲突、成长弧）")
-        print("  - 里程碑（3-5个关键节点）")
-        print(f"  - 卷纲（共 {(target_chapters + 24) // 25} 卷，每卷25章）")
+        print(f"  - 卷纲（共 {total_volumes} 卷，每卷25章）")
 
         confirm = input("\n确认开始生成？(y/n) [y]: ").strip().lower()
         if confirm == 'n':
@@ -92,15 +93,15 @@ class AdvancedNovelConfigurator:
             self.config['volumes'] = []
             return
 
-        # 导入 generate_outline 的功能
-        from generate_outline import generate_novel_outline, generate_volume_frameworks
+        # 🔧 使用与 main.py 相同的 AI 生成逻辑
+        from src.main import _ai_generate_outline, _ai_generate_volumes
 
         print("\n🤖 AI 正在生成总纲...")
-        novel_outline = generate_novel_outline(self.config)
+        novel_outline = _ai_generate_outline(self.config['novel'])
         print("✅ 总纲生成完成")
 
-        print("\n🤖 AI 正在生成卷纲...")
-        volume_frameworks = generate_volume_frameworks(self.config, novel_outline)
+        print(f"\n🤖 AI 正在生成 {total_volumes} 个卷框架...")
+        volume_frameworks = _ai_generate_volumes(self.config['novel'], novel_outline, target_chapters, total_volumes)
         print("✅ 卷纲生成完成")
 
         # 转换为新格式
@@ -109,28 +110,14 @@ class AdvancedNovelConfigurator:
             'main_goal': novel_outline.get('main_goal', ''),
             'main_conflict': novel_outline.get('main_conflict', ''),
             'protagonist_arc': novel_outline.get('protagonist_arc', ''),
-            'phases': []
+            'phases': []  # AI 快速模式不生成 phases
         }
 
-        # 转换 key_milestones 为 phases
-        milestones = novel_outline.get('key_milestones', [])
-        if milestones:
-            phases = []
-            for i, ms in enumerate(milestones):
-                prev_chapter = milestones[i-1]['target_chapter'] + 1 if i > 0 else 1
-                curr_chapter = ms['target_chapter']
-                phases.append({
-                    'name': f"阶段{i+1}",
-                    'goal': ms['milestone'],
-                    'chapters': f"{prev_chapter}-{curr_chapter}"
-                })
-            self.config['outline']['phases'] = phases
-
-        # 转换 volume_frameworks
+        # 转换 volume_frameworks（已经是标准格式）
         volumes = []
-        for vol in volume_frameworks:
+        for i, vol in enumerate(volume_frameworks, 1):
             volumes.append({
-                'volume': len(volumes) + 1,
+                'volume': i,
                 'title': vol.get('title', ''),
                 'chapters': vol.get('chapters', ''),
                 'core_goal': vol.get('core_goal', ''),
@@ -141,8 +128,14 @@ class AdvancedNovelConfigurator:
         self.config['volumes'] = volumes
 
         print(f"\n✅ AI 生成完成！")
-        print(f"   总纲: {len(phases)} 个阶段")
+        print(f"   总纲: 已生成")
         print(f"   卷纲: {len(volumes)} 卷")
+
+        # 显示前3卷预览
+        if len(volumes) >= 3:
+            print(f"\n📖 前3卷预览：")
+            for vol in volumes[:3]:
+                print(f"   [{vol['title']}] {vol['chapters']}章: {vol['core_goal'][:30]}...")
 
     def step_3_ai_assisted_custom(self, target_chapters):
         """步骤3：AI 辅助自定义大纲"""
@@ -248,25 +241,29 @@ class AdvancedNovelConfigurator:
 
         volumes = []
         if need_volumes:
+            total_volumes = (target_chapters + 24) // 25  # 计算总卷数
             use_ai_volumes = input("\n让 AI 生成卷纲？(y/n) [y]: ").strip().lower() != 'n'
 
             if use_ai_volumes:
-                print("\n🤖 AI 正在生成卷纲...")
-                from generate_outline import generate_volume_frameworks
-                volume_frameworks = generate_volume_frameworks(self.config, novel_outline)
+                print(f"\n🤖 AI 正在生成 {total_volumes} 个卷框架...")
+                # 🔧 使用与 main.py 相同的 AI 生成逻辑
+                from src.main import _ai_generate_volumes
+                volume_frameworks = _ai_generate_volumes(self.config['novel'], novel_outline, target_chapters, total_volumes)
                 print(f"✅ 生成了 {len(volume_frameworks)} 卷\n")
 
-                # 显示卷纲
-                for vol in volume_frameworks:
+                # 显示卷纲（前5卷）
+                for vol in volume_frameworks[:min(5, len(volume_frameworks))]:
                     print(f"第{vol.get('chapters', '?')}章: {vol.get('title', '')}")
                     print(f"  目标: {vol.get('core_goal', '')}")
                     print(f"  事件: {', '.join(vol.get('key_events', [])[:3])}")
+                if len(volume_frameworks) > 5:
+                    print(f"  ... 还有 {len(volume_frameworks) - 5} 卷")
 
                 modify = input("\n是否修改卷纲？(y/n) [n]: ").strip().lower() == 'y'
                 if modify:
                     volumes = self._manual_edit_volumes(volume_frameworks)
                 else:
-                    # 转换为新格式
+                    # volume_frameworks 已经是新格式，直接使用
                     for i, vol in enumerate(volume_frameworks):
                         volumes.append({
                             'volume': i + 1,

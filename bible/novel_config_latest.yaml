@@ -1,0 +1,42 @@
+characters:
+- age: 未知
+  goal: 生存
+  location: 都市
+  name: 角色1
+  occupation: 未知
+  relationships: {}
+  status: Alive
+  traits: []
+generation:
+  character_autonomy: medium
+  critic_temp: 0.3
+  enable_plot_twists: true
+  foreshadow_strategy: moderate
+  max_revision_iterations: 2
+  planner_temp: 0.7
+  randomness_level: medium
+  writer_temp: 0.85
+metadata:
+  created_at: '2026-02-06T10:12:42.537156'
+  version: '3.0'
+novel:
+  synopsis: '1'
+  target_chapters: 10
+  title: '1'
+  type: '1'
+outline:
+  main_conflict: （AI 自动生成）
+  main_goal: （AI 自动生成）
+  phases: []
+  protagonist_arc: （AI 自动生成）
+  synopsis: '1'
+style:
+  is_fanqie_style: true
+  pace: fast
+  style_name: 番茄爽文（快节奏、爽点密集）
+  tone: intense
+volumes: []
+worldbuilding:
+  era: 现代
+  power_system: 无
+  setting: 都市

@@ -12,7 +12,8 @@ def save_chapter_to_file(chapter_index, content, state):
     try:
         # 获取小说标题
         config = state.get('config', {})
-        title = config.get('title', '未命名小说')
+        novel_info = config.get('novel', {})
+        title = novel_info.get('title', '未命名小说')
 
         # 创建输出目录
         output_dir = Path(f"/project/novel/manuscript/{title}")

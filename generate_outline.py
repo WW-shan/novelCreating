@@ -285,8 +285,23 @@ def main():
     print("\n🎬 总纲和卷纲生成工具")
     print("=" * 70)
 
-    # 读取配置
-    config_path = "bible/novel_config_latest.yaml"
+    # 🔧 新增：检测当前项目
+    try:
+        sys.path.insert(0, '/project/novel')
+        from src.project_manager import ProjectManager
+        pm = ProjectManager()
+        current_project = pm.get_current_project()
+
+        if current_project:
+            print(f"\n📚 当前项目: {current_project['title']}")
+            config_path = current_project['config_file']
+            print(f"   配置文件: {config_path}")
+        else:
+            print("\n⚠️  未找到当前项目，使用默认配置")
+            config_path = "bible/novel_config_latest.yaml"
+    except:
+        # 回退到旧路径
+        config_path = "bible/novel_config_latest.yaml"
 
     if not os.path.exists(config_path):
         print(f"❌ 配置文件不存在: {config_path}")

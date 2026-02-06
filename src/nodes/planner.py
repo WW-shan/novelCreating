@@ -10,29 +10,41 @@ import yaml
 
 def load_custom_outline(state):
     """
-    从项目目录加载自定义大纲
+    统一加载自定义大纲，支持两种格式：
+    1. 新格式：projects/<id>/bible/outline.yaml
+    2. 旧格式：config 中的 novel_outline 和 volume_frameworks
 
     Returns:
         dict or None: 大纲信息（outline, volumes）
     """
+    # 🔧 优先尝试新格式（独立的 outline.yaml）
     project_paths = state.get('project_paths', {})
     bible_dir = project_paths.get('bible_dir')
 
-    if not bible_dir:
-        return None
+    if bible_dir:
+        outline_file = os.path.join(bible_dir, 'outline.yaml')
+        if os.path.exists(outline_file):
+            try:
+                with open(outline_file, 'r', encoding='utf-8') as f:
+                    data = yaml.safe_load(f)
+                print(f"  📖 加载独立大纲文件: outline.yaml")
+                return data
+            except Exception as e:
+                print(f"  ⚠️  读取 outline.yaml 失败: {e}")
 
-    outline_file = os.path.join(bible_dir, 'outline.yaml')
+    # 🔧 回退到旧格式（配置文件中的字段）
+    config = state.get('config', {})
+    novel_outline = config.get('novel_outline')
+    volume_frameworks = config.get('volume_frameworks')
 
-    if not os.path.exists(outline_file):
-        return None
+    if novel_outline or volume_frameworks:
+        print(f"  📖 加载配置中的大纲字段")
+        return {
+            'outline': novel_outline or {},
+            'volumes': volume_frameworks or []
+        }
 
-    try:
-        with open(outline_file, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f)
-        return data
-    except Exception as e:
-        print(f"  ⚠️  读取大纲文件失败: {e}")
-        return None
+    return None
 
 
 def find_current_phase(outline, chapter_index):

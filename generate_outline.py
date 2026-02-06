@@ -257,8 +257,89 @@ def display_outline_and_frameworks(novel_outline, volume_frameworks):
 
 
 def save_outline_and_frameworks(config_path, novel_outline, volume_frameworks):
-    """保存总纲和卷纲到配置文件"""
+    """保存总纲和卷纲到新格式文件（outline.yaml）"""
 
+    # 🔧 新版：保存到 outline.yaml 而不是 config 文件
+    try:
+        sys.path.insert(0, '/project/novel')
+        from src.project_manager import ProjectManager
+        pm = ProjectManager()
+        current_project = pm.get_current_project()
+
+        if current_project:
+            # 保存到项目的 bible 目录
+            bible_dir = current_project['bible_dir']
+            outline_file = os.path.join(bible_dir, 'outline.yaml')
+
+            outline_data = {
+                'outline': {
+                    'synopsis': '',  # 从 config 读取
+                    'main_goal': novel_outline.get('main_goal', ''),
+                    'main_conflict': novel_outline.get('main_conflict', ''),
+                    'protagonist_arc': novel_outline.get('protagonist_arc', ''),
+                    'phases': []  # 如果有 key_milestones 转换为 phases
+                },
+                'volumes': volume_frameworks
+            }
+
+            # 尝试从 config 读取梗概
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+                outline_data['outline']['synopsis'] = config.get('novel', {}).get('synopsis', '')
+            except:
+                pass
+
+            # 转换 key_milestones 为 phases（如果有）
+            milestones = novel_outline.get('key_milestones', [])
+            if milestones:
+                phases = []
+                for i, ms in enumerate(milestones):
+                    prev_chapter = milestones[i-1]['target_chapter'] + 1 if i > 0 else 1
+                    curr_chapter = ms['target_chapter']
+                    phases.append({
+                        'name': f"阶段{i+1}",
+                        'goal': ms['milestone'],
+                        'chapters': f"{prev_chapter}-{curr_chapter}"
+                    })
+                outline_data['outline']['phases'] = phases
+
+            # 保存到 outline.yaml
+            os.makedirs(bible_dir, exist_ok=True)
+            with open(outline_file, 'w', encoding='utf-8') as f:
+                yaml.dump(outline_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+            print(f"\n💾 总纲和卷纲已保存到: {outline_file}")
+            print(f"   ✅ 使用新格式（outline.yaml）")
+
+            # 🔧 可选：同时保存到 config（向后兼容）
+            save_to_config_too = input("\n是否同时保存到配置文件（兼容旧版本）？(y/n) [n]: ").strip().lower()
+            if save_to_config_too == 'y':
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = yaml.safe_load(f)
+
+                config['novel_outline'] = novel_outline
+                config['volume_frameworks'] = volume_frameworks
+
+                # 备份原文件
+                import shutil
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_path = config_path.replace('.yaml', f'_backup_{timestamp}.yaml')
+                shutil.copy2(config_path, backup_path)
+                print(f"  💾 原配置已备份到: {backup_path}")
+
+                with open(config_path, 'w', encoding='utf-8') as f:
+                    yaml.dump(config, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+                print(f"  💾 也已保存到: {config_path}")
+
+            return
+
+    except Exception as e:
+        print(f"  ⚠️  无法使用新格式，回退到旧格式: {e}")
+
+    # 回退：保存到配置文件（旧格式）
     with open(config_path, 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
 

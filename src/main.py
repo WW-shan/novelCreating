@@ -121,9 +121,14 @@ def config_to_initial_state(config, paths=None):
                 try:
                     with open(outline_file, 'r', encoding='utf-8') as f:
                         outline_data = yaml.safe_load(f)
-                    novel_outline = outline_data.get('outline', {})
-                    volume_frameworks = outline_data.get('volumes', [])
-                    print(f"  📖 加载独立大纲文件: outline.yaml")
+
+                    # 检查 outline_data 是否为 None 或空
+                    if outline_data and isinstance(outline_data, dict):
+                        novel_outline = outline_data.get('outline', {})
+                        volume_frameworks = outline_data.get('volumes', [])
+                        print(f"  📖 加载独立大纲文件: outline.yaml")
+                    else:
+                        print(f"  ⚠️  outline.yaml 为空或格式错误")
                 except Exception as e:
                     print(f"  ⚠️  读取 outline.yaml 失败: {e}")
 

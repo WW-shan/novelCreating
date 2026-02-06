@@ -27,8 +27,13 @@ def load_custom_outline(state):
             try:
                 with open(outline_file, 'r', encoding='utf-8') as f:
                     data = yaml.safe_load(f)
-                print(f"  📖 加载独立大纲文件: outline.yaml")
-                return data
+
+                # 检查 data 是否为 None 或空
+                if data and isinstance(data, dict):
+                    print(f"  📖 加载独立大纲文件: outline.yaml")
+                    return data
+                else:
+                    print(f"  ⚠️  outline.yaml 为空或格式错误")
             except Exception as e:
                 print(f"  ⚠️  读取 outline.yaml 失败: {e}")
 

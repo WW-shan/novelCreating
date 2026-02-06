@@ -729,10 +729,19 @@ class AdvancedNovelConfigurator:
             outline_mode = self.step_1_outline_mode()
             target_chapters = self.step_2_basic_info()
 
+            # 🔧 优化：先收集世界观和角色信息，再生成大纲
+            print("\n" + "="*60)
+            print("💡 提示：接下来收集世界观和角色信息")
+            print("   这些信息将帮助 AI 生成更贴合你的世界的大纲")
+            print("="*60)
+
+            self.step_5_worldbuilding()
+            self.step_6_characters()
+
+            # 生成大纲（基于已收集的世界观和角色）
             if outline_mode == '2':
                 # AI 快速生成完整大纲
                 self.step_3_ai_generate_outline(target_chapters)
-                # AI 已经生成了卷纲，跳过手动输入
             elif outline_mode == '3':
                 # AI 辅助自定义模式（一步步引导）
                 self.step_3_ai_assisted_custom(target_chapters)
@@ -743,10 +752,8 @@ class AdvancedNovelConfigurator:
             elif outline_mode == '5':
                 # TODO: 导入大纲
                 print("\n⚠️  导入功能开发中，使用简易模式")
-                synopsis = input("\n故事梗概: ").strip()
-                self.config['novel']['synopsis'] = synopsis
                 self.config['outline'] = {
-                    'synopsis': synopsis,
+                    'synopsis': self.config['novel']['synopsis'],
                     'main_goal': "（AI 自动生成）",
                     'main_conflict': "（AI 自动生成）",
                     'protagonist_arc': "（AI 自动生成）",
@@ -755,10 +762,8 @@ class AdvancedNovelConfigurator:
                 self.config['volumes'] = []
             else:
                 # 简易模式（默认）
-                synopsis = input("\n故事梗概: ").strip()
-                self.config['novel']['synopsis'] = synopsis
                 self.config['outline'] = {
-                    'synopsis': synopsis,
+                    'synopsis': self.config['novel']['synopsis'],
                     'main_goal': "（AI 自动生成）",
                     'main_conflict': "（AI 自动生成）",
                     'protagonist_arc': "（AI 自动生成）",
@@ -766,8 +771,7 @@ class AdvancedNovelConfigurator:
                 }
                 self.config['volumes'] = []
 
-            self.step_5_worldbuilding()
-            self.step_6_characters()
+            # 继续后续步骤
             self.step_7_style_settings()
             self.step_8_generation_settings()
             success = self.step_9_review_and_save()

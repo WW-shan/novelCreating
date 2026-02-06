@@ -110,8 +110,24 @@ def planner_node(state: NovelState) -> NovelState:
 
     # 🔧 新增：加载自定义大纲（如果有）
     custom_outline = load_custom_outline(state)
+
+    # 🔧 新增：显示大纲使用情况
     if custom_outline:
-        print(f"  📖 使用自定义大纲")
+        outline_data = custom_outline.get('outline', {})
+        volumes_data = custom_outline.get('volumes', [])
+
+        if outline_data and outline_data.get('main_goal'):
+            print(f"  📖 使用自定义大纲")
+            print(f"     主目标: {outline_data.get('main_goal', '')[:50]}...")
+            if outline_data.get('phases'):
+                print(f"     阶段数: {len(outline_data.get('phases', []))}")
+        else:
+            print(f"  📖 使用 AI 默认生成模式（无预设大纲）")
+
+        if volumes_data:
+            print(f"     卷数: {len(volumes_data)}")
+    else:
+        print(f"  📖 使用 AI 默认生成模式（无预设大纲）")
 
     # 检查是否使用分层记忆（长篇模式）
     hot_memory = state.get("hot_memory")

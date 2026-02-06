@@ -138,6 +138,7 @@ def config_to_initial_state(config):
             print(f"  📖 加载配置中的大纲字段")
 
         # 如果配置中缺少总纲，生成默认总纲
+        auto_generated = False  # 标记是否自动生成
         if not novel_outline:
             print(f"\n⚠️  配置中缺少总纲，使用默认结构")
             novel_outline = {
@@ -145,6 +146,7 @@ def config_to_initial_state(config):
                 'main_conflict': '待定（建议在配置中添加）',
                 'protagonist_arc': '待定（建议在配置中添加）'
             }
+            auto_generated = True
 
         # 如果配置中缺少卷纲，生成默认卷纲
         if not volume_frameworks:
@@ -165,6 +167,45 @@ def config_to_initial_state(config):
                         'ending_state': '待定',
                         'foreshadowing': []
                     })
+                auto_generated = True
+
+        # 🔧 新增：如果是自动生成的，保存到 outline.yaml
+        if auto_generated and bible_dir:
+            print(f"\n💾 保存自动生成的大纲到 outline.yaml...")
+            outline_file = os.path.join(bible_dir, 'outline.yaml')
+
+            # 转换为新格式
+            outline_data = {
+                'outline': {
+                    'synopsis': novel_config.get('synopsis', ''),
+                    'main_goal': novel_outline.get('main_goal', ''),
+                    'main_conflict': novel_outline.get('main_conflict', ''),
+                    'protagonist_arc': novel_outline.get('protagonist_arc', ''),
+                    'phases': []  # 默认生成暂时没有 phases
+                },
+                'volumes': []
+            }
+
+            # 转换卷纲
+            for i, vol in enumerate(volume_frameworks):
+                outline_data['volumes'].append({
+                    'volume': i + 1,
+                    'title': vol.get('title', ''),
+                    'chapters': vol.get('chapters', ''),
+                    'core_goal': vol.get('core_goal', ''),
+                    'key_events': vol.get('key_events', []),
+                    'foreshadowing': vol.get('foreshadowing', []),
+                    'ending_state': vol.get('ending_state', '')
+                })
+
+            try:
+                os.makedirs(bible_dir, exist_ok=True)
+                with open(outline_file, 'w', encoding='utf-8') as f:
+                    yaml.dump(outline_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+                print(f"   ✅ 已保存到: {outline_file}")
+                print(f"   📝 提示: 可以手动编辑此文件来完善大纲")
+            except Exception as e:
+                print(f"   ⚠️  保存失败: {e}")
 
         initial_state.update({
             'hot_memory': hot_memory,

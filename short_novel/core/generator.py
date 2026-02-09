@@ -3,6 +3,7 @@ Novel Generator - Setting, outline, and chapter generation
 """
 import json
 import re
+import random
 from pathlib import Path
 from typing import Optional
 import yaml
@@ -14,6 +15,22 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 MAX_TOKENS_PER_PART = 1500  # 每个部分限制输出，防止代理超时
 MAX_TOKENS_ANALYSIS = 4000  # 分析类也限制一下
 PARTS_PER_CHAPTER = 2  # 每章分2部分生成
+
+# 随机人名库
+MALE_NAMES = ["陈默", "林风", "张远", "王浩", "李明", "赵阳", "周毅", "吴凡", "郑宇", "孙强", "刘峰", "杨磊"]
+FEMALE_NAMES = ["苏晴", "林婉", "陈雨", "王璇", "李婷", "赵雪", "周琳", "吴梦", "郑薇", "孙萌", "刘诗", "杨柳"]
+VILLAIN_NAMES = ["钱少", "周公子", "赵董", "孙总", "马老板", "刘少爷", "王董事"]
+
+
+def get_random_names() -> dict:
+    """生成随机角色名"""
+    male = random.choice(MALE_NAMES)
+    female = random.choice(FEMALE_NAMES)
+    # 确保姓不同
+    while female[0] == male[0]:
+        female = random.choice(FEMALE_NAMES)
+    villain = random.choice(VILLAIN_NAMES)
+    return {"male": male, "female": female, "villain": villain}
 
 
 def _load_prompt(name: str) -> str:
@@ -42,6 +59,7 @@ def generate_setting(
 ) -> dict:
     """
     Generate character and setting based on template.
+    Uses random names for each generation.
 
     Args:
         template: The plot template
@@ -50,6 +68,9 @@ def generate_setting(
     Returns:
         Setting configuration as dict
     """
+    # 获取随机角色名
+    names = get_random_names()
+
     # 简化模板，只取关键信息
     simplified_template = {
         "name": template.get("name", ""),
@@ -64,19 +85,24 @@ def generate_setting(
 
 {template_yaml}
 
+使用以下角色名：
+- 主角名：{names['male']}
+- 女主名：{names['female']}
+- 主要反派：{names['villain']}
+
 用户要求：{user_requirements or "无特殊要求"}
 
 输出JSON格式，包含：
 - title: 小说标题
-- protagonist: {{name, hidden_identity, public_identity}}
-- female_lead: {{name, identity, relationship}}
-- antagonists: [{{name, identity, level}}] (3个)
+- protagonist: {{name: "{names['male']}", hidden_identity, public_identity}}
+- female_lead: {{name: "{names['female']}", identity, relationship}}
+- antagonists: [{{name: "{names['villain']}", identity, level}}, ...] (3个反派)
 - setting: {{time_period, location}}
 
 直接输出JSON："""
 
     response = generate(
-        system_prompt="网文设定师。只输出JSON，不要解释。",
+        system_prompt="网文设定师。只输出JSON，不要解释。必须使用指定的角色名。",
         user_prompt=prompt,
         max_tokens=MAX_TOKENS_ANALYSIS,
     )

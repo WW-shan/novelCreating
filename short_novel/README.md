@@ -19,11 +19,25 @@ python3 analyze.py    # 分析小说提取模板
 ## 环境要求
 
 - Python 3.10+
-- Anthropic API Key (设置环境变量 `ANTHROPIC_API_KEY`)
+- Anthropic API Key
+
+### API 配置
 
 ```bash
+# 必需：设置 API Key
 export ANTHROPIC_API_KEY="your-api-key"
+
+# 可选：使用 API 中转/代理
+export ANTHROPIC_BASE_URL="https://your-proxy.com/v1"
+
+# 可选：使用其他模型（默认 claude-opus-4-6）
+export ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
 ```
+
+支持的环境变量：
+- `ANTHROPIC_API_KEY` - API密钥（必需）
+- `ANTHROPIC_BASE_URL` - 自定义API地址，用于代理/中转（可选）
+- `ANTHROPIC_MODEL` - 模型名称（可选，默认 claude-opus-4-6）
 
 ## 功能说明
 

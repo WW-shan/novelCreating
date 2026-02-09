@@ -7,7 +7,8 @@ from anthropic import Anthropic
 
 # Direct config to avoid import issues when run as script
 API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-MODEL = "claude-opus-4-6"
+API_BASE_URL = os.environ.get("ANTHROPIC_BASE_URL", "")  # 支持自定义 API 中转
+MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-6")  # 支持自定义模型
 
 
 def generate(
@@ -32,11 +33,20 @@ def generate(
 
     Raises:
         Exception: If all retries fail
+
+    Environment variables:
+        ANTHROPIC_API_KEY: Your API key (required)
+        ANTHROPIC_BASE_URL: Custom API base URL for proxy (optional)
+        ANTHROPIC_MODEL: Model to use (default: claude-opus-4-6)
     """
     if not API_KEY:
         raise ValueError("ANTHROPIC_API_KEY environment variable not set")
 
-    client = Anthropic(api_key=API_KEY)
+    # Create client with optional base_url
+    if API_BASE_URL:
+        client = Anthropic(api_key=API_KEY, base_url=API_BASE_URL)
+    else:
+        client = Anthropic(api_key=API_KEY)
 
     last_error = None
     for attempt in range(retries):

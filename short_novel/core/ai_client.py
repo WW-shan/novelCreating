@@ -41,8 +41,8 @@ def generate(
     system_prompt: str,
     user_prompt: str,
     max_tokens: int = 4096,
-    retries: int = 3,
-    retry_delay: float = 5.0,
+    retries: int = 5,
+    retry_delay: float = 30.0,
 ) -> str:
     """
     Generate text using Claude API.
@@ -78,6 +78,8 @@ def generate(
         client = Anthropic(api_key=API_KEY, timeout=timeout)
 
     last_error = None
+    current_delay = retry_delay
+
     for attempt in range(retries):
         try:
             response = client.messages.create(
@@ -92,17 +94,47 @@ def generate(
             error_str = str(e)
 
             # Check for proxy timeout errors
-            if "524" in error_str or "timeout" in error_str.lower():
-                error_msg = "代理服务器超时 (Error 524) - 服务器可能过载，请稍后重试"
-            elif "<!DOCTYPE" in error_str or "<html" in error_str:
-                error_msg = "代理服务器返回了HTML错误页面 - 请检查代理服务器状态"
+            is_proxy_error = ("524" in error_str or "timeout" in error_str.lower() or
+                              "<!DOCTYPE" in error_str or "<html" in error_str or
+                              "502" in error_str or "503" in error_str or "504" in error_str)
+
+            if is_proxy_error:
+                error_msg = "代理服务器超时/过载 - 等待后重试"
             else:
-                error_msg = error_str[:200] if len(error_str) > 200 else error_str
+                error_msg = error_str[:150] if len(error_str) > 150 else error_str
 
             if attempt < retries - 1:
-                print(f"API调用失败 (尝试 {attempt + 1}/{retries}): {error_msg}")
-                print(f"{retry_delay}秒后重试...")
-                time.sleep(retry_delay)
-                retry_delay *= 1.5  # Exponential backoff
+                print(f"\n⚠ API调用失败 (尝试 {attempt + 1}/{retries}): {error_msg}")
+
+                if is_proxy_error:
+                    # For proxy errors, wait longer and show countdown
+                    wait_time = current_delay
+                    print(f"代理服务器可能过载，等待 {int(wait_time)} 秒后重试...")
+                    print("(按 Ctrl+C 可取消)")
+
+                    # Show countdown
+                    for remaining in range(int(wait_time), 0, -10):
+                        print(f"  剩余 {remaining} 秒...", end="\r")
+                        time.sleep(min(10, remaining))
+                    print(" " * 30, end="\r")  # Clear line
+                else:
+                    print(f"{current_delay}秒后重试...")
+                    time.sleep(current_delay)
+
+                current_delay = min(current_delay * 1.5, 120)  # Cap at 2 minutes
+
+    # Final failure - offer to retry manually
+    print(f"\n✗ API调用失败，已重试 {retries} 次")
+    if is_proxy_error:
+        print("代理服务器持续不可用。")
+        while True:
+            choice = input("是否继续重试？[Y/n]: ").strip().lower()
+            if choice == 'n':
+                raise last_error
+            elif choice in ('', 'y'):
+                print("继续重试...")
+                return generate(system_prompt, user_prompt, max_tokens, retries, retry_delay)
+            else:
+                print("请输入 Y 或 N")
 
     raise last_error

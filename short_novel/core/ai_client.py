@@ -3,7 +3,31 @@ Claude API wrapper with retry logic
 """
 import os
 import time
+from pathlib import Path
 from anthropic import Anthropic
+
+# Load .env file if exists (check multiple locations)
+def _load_dotenv():
+    """Load environment variables from .env file."""
+    env_locations = [
+        Path(__file__).parent.parent / ".env",  # short_novel/.env
+        Path(__file__).parent.parent.parent / ".env",  # project root/.env
+    ]
+
+    for env_path in env_locations:
+        if env_path.exists():
+            with open(env_path, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, _, value = line.partition("=")
+                        key = key.strip()
+                        value = value.strip().strip('"').strip("'")
+                        if key and key not in os.environ:  # Don't override existing
+                            os.environ[key] = value
+            break
+
+_load_dotenv()
 
 # Direct config to avoid import issues when run as script
 API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")

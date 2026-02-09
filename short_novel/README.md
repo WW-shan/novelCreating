@@ -23,6 +23,18 @@ python3 analyze.py    # 分析小说提取模板
 
 ### API 配置
 
+**方式一：使用 .env 文件（推荐）**
+
+在项目根目录创建 `.env` 文件：
+
+```
+ANTHROPIC_API_KEY=your-api-key
+ANTHROPIC_BASE_URL=https://your-proxy.com/api
+ANTHROPIC_MODEL=claude-opus-4-6
+```
+
+**方式二：使用环境变量**
+
 ```bash
 # 必需：设置 API Key
 export ANTHROPIC_API_KEY="your-api-key"
@@ -34,7 +46,7 @@ export ANTHROPIC_BASE_URL="https://your-proxy.com/v1"
 export ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
 ```
 
-支持的环境变量：
+支持的配置项：
 - `ANTHROPIC_API_KEY` - API密钥（必需）
 - `ANTHROPIC_BASE_URL` - 自定义API地址，用于代理/中转（可选）
 - `ANTHROPIC_MODEL` - 模型名称（可选，默认 claude-opus-4-6）

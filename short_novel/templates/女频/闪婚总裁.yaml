@@ -1,0 +1,290 @@
+# 闪婚总裁模板
+name: "闪婚总裁"
+category: "女频"
+sub_type: "甜宠"
+tags: ["闪婚", "隐藏身份", "甜宠", "霸总", "短篇连载"]
+source: "经典套路抽象"
+proven_metrics: "同类爆款完读率80%+, 追读率55%+"
+
+# 第一层：读者心理契约
+reader_contract:
+  core_fantasy: "被顶级男人独宠，他对全世界冷酷唯独对我温柔"
+  entry_emotion: "代入女主的困境和委屈"
+  payoff_emotion: "被宠爱的甜蜜感 + 打脸渣男渣女的爽感"
+  implicit_promise: "男主一定会爱上女主，而且爱得很深"
+  reading_motivation: "看男主怎么宠女主，看渣男渣女怎么后悔"
+
+# 第二层：角色功能系统
+character_system:
+  protagonist:
+    archetype: "坚强隐忍的灰姑娘"
+    inner_trait: "善良但不软弱，有底线有骨气"
+    outer_trait: "家境普通/受气，被迫嫁给'废物'丈夫"
+    golden_rule: "女主不是傻白甜，遇到欺负会反击，但不会主动作妖"
+
+  male_lead:
+    archetype: "外冷内热的隐藏大佬"
+    hidden_identity: "真正的顶级豪门/商业帝国掌门人"
+    public_identity: "被传是废物/穷光蛋/家族弃子"
+    personality: "对外高冷甚至冷酷，对女主反差萌"
+    golden_rule: "对女主的好要有层次，从暗中保护到明着宠"
+    reveal_strategy:
+      - "先展示他的体贴和能力（但女主不知道原因）"
+      - "一次次在女主危难时出手（身份渐渐露出）"
+      - "最终身份曝光，原来他从一开始就选择了她"
+
+  antagonist_design:
+    structure: "渣男渣女阶梯"
+    principle: "每个反派都以为自己能欺负女主，最后都被男主碾压"
+    levels:
+      - level: 1
+        type: "日常找茬的亲戚"
+        example: "势利眼婆婆/小姑子/七大姑八大姨"
+        attitude: "嫌弃女主嫁了个'废物'"
+        defeat_method: "男主小露一手，全家震惊"
+      - level: 2
+        type: "有背景的情敌"
+        example: "富家女/前女友/心机闺蜜"
+        attitude: "公开抢男主/羞辱女主"
+        defeat_method: "被男主当众打脸，身败名裂"
+      - level: 3
+        type: "原生家庭反派"
+        example: "渣爹/后妈/恶毒姐妹"
+        attitude: "利用女主/陷害女主"
+        defeat_method: "真相大白，众叛亲离"
+
+  supporting_characters:
+    best_friend:
+      function: "给女主建议，替读者问出心里话"
+      technique: "嘴碎但忠诚"
+    male_lead_助手:
+      function: "透露男主心意，制造信息差的甜"
+      technique: "对女主恭敬，让女主困惑"
+
+# 第三层：情节节奏引擎
+plot_engine:
+  rhythm_principle: "虐1甜3 — 每次虐完都有更大的甜，甜度递增"
+  tension_curve: "波浪上升型 — 感情线不断升温，穿插小误会增加张力"
+
+  beats:
+    - beat_id: 1
+      name: "闪婚开局"
+      chapters: [1]
+      story_goal: "建立女主困境，完成闪婚，制造悬念"
+      emotion_curve:
+        start: "女主的委屈困境"
+        build: "被迫闪婚的无奈"
+        end: "新婚夜的尴尬 + 男主第一次反差"
+      micro_rhythm:
+        - segment: "困境展示"
+          weight: "30%"
+          content: "女主被逼婚/顶替/利用的场景"
+          technique: "用对话展示，不要旁白解释"
+        - segment: "闪婚进行时"
+          weight: "30%"
+          content: "闪婚过程，女主以为嫁了废物"
+          technique: "通过别人的嘲讽传达信息"
+        - segment: "第一次反差"
+          weight: "25%"
+          content: "男主第一次展现不同于传闻的一面"
+          technique: "小细节，女主注意到但不确定"
+        - segment: "钩子"
+          weight: "15%"
+          content: "某个暗示男主身份的细节"
+      writing_rules:
+        - "开局要快，三段内进入核心冲突"
+        - "女主的委屈要具体、让读者心疼"
+        - "男主出场要有记忆点"
+
+    - beat_id: 2
+      name: "甜蜜初现"
+      chapters: [2, 3]
+      story_goal: "男主开始暗中照顾女主，发糖"
+      emotion_curve:
+        start: "新婚磨合期的尴尬"
+        build: "男主的小举动让女主心动"
+        peak: "第一次心跳时刻"
+        end: "甜蜜+新的危机预告"
+      micro_rhythm:
+        - segment: "日常互动"
+          weight: "30%"
+          content: "新婚生活的小甜蜜"
+          technique: "男主外冷内热的反差萌"
+        - segment: "暗中保护"
+          weight: "25%"
+          content: "男主在女主不知道的情况下帮她"
+          technique: "读者知道但女主不知道，制造信息差"
+        - segment: "心动时刻"
+          weight: "25%"
+          content: "一个让女主心跳加速的场景"
+          technique: "可以是肢体接触/救命/霸气护妻"
+        - segment: "反派登场"
+          weight: "20%"
+          content: "情敌或渣男渣女出现"
+      writing_rules:
+        - "甜要甜得具体，多写细节"
+        - "男主对女主的好要有反差"
+        - "为打脸做铺垫"
+
+    - beat_id: 3
+      name: "第一次打脸"
+      chapters: [4, 5]
+      story_goal: "反派羞辱女主，男主霸气护妻"
+      emotion_curve:
+        start: "女主被反派欺负"
+        build: "委屈积累到顶点"
+        peak: "男主出场，打脸反派"
+        end: "女主对男主刮目相看"
+      micro_rhythm:
+        - segment: "反派嚣张"
+          weight: "30%"
+          content: "情敌/渣女当众羞辱女主"
+          technique: "羞辱要具体、过分，让读者气愤"
+        - segment: "男主登场"
+          weight: "20%"
+          content: "男主出现的方式要帅"
+        - segment: "打脸时刻"
+          weight: "25%"
+          content: "男主打脸反派，不用动手，靠身份碾压"
+          technique: "写反派从嚣张到惊恐的变化"
+        - segment: "护妻宣言"
+          weight: "25%"
+          content: "男主当众维护女主"
+          technique: "金句要有，成为高光台词"
+      writing_rules:
+        - "打脸要快准狠"
+        - "反派的表情变化要细写"
+        - "男主护妻的话要霸气"
+
+    - beat_id: 4
+      name: "身份危机"
+      chapters: [6, 7]
+      story_goal: "女主开始怀疑男主身份，产生误会，感情危机"
+      emotion_curve:
+        start: "甜蜜中的不安"
+        build: "误会加深"
+        peak: "争吵/冷战"
+        end: "误会解开的契机"
+      micro_rhythm:
+        - segment: "疑点积累"
+          weight: "25%"
+          content: "女主发现男主的秘密"
+        - segment: "误会产生"
+          weight: "30%"
+          content: "女主误解男主的动机"
+          technique: "误会要合理，不能太蠢"
+        - segment: "冲突爆发"
+          weight: "25%"
+          content: "两人争吵或女主负气离开"
+        - segment: "男主心碎"
+          weight: "20%"
+          content: "展示男主的真心"
+          technique: "可以通过助手/回忆展现"
+      writing_rules:
+        - "虐心但不能太虐，要让读者觉得能和好"
+        - "男主的深情要在这里展现"
+        - "为和好做铺垫"
+
+    - beat_id: 5
+      name: "真相大白"
+      chapters: [8, 9]
+      story_goal: "男主真实身份曝光，所有人震惊，感情圆满"
+      emotion_curve:
+        start: "分离的痛苦"
+        build: "真相揭露"
+        peak: "身份曝光，全场跪"
+        end: "两人和好，浓情蜜意"
+      micro_rhythm:
+        - segment: "危机逼近"
+          weight: "20%"
+          content: "女主遇到最大危机（被陷害/被绑架等）"
+        - segment: "男主霸气救场"
+          weight: "25%"
+          content: "男主以真实身份出现"
+          technique: "要有仪式感，气场全开"
+        - segment: "全场震惊"
+          weight: "30%"
+          content: "所有人的反应，渣男渣女后悔"
+          technique: "态度180度转变要写详细"
+        - segment: "深情告白"
+          weight: "25%"
+          content: "男主向女主表白真心"
+          technique: "要解释为什么一开始就选择她"
+      writing_rules:
+        - "身份揭露要震撼"
+        - "渣男渣女的后悔要写足"
+        - "男主的深情告白要感人"
+
+    - beat_id: 6
+      name: "甜蜜结局"
+      chapters: [10]
+      story_goal: "圆满结局，发最后一波糖"
+      emotion_curve:
+        start: "满足感"
+        build: "甜蜜日常"
+        end: "意犹未尽"
+      micro_rhythm:
+        - segment: "渣配结局"
+          weight: "25%"
+          content: "各个反派的下场"
+        - segment: "撒糖时刻"
+          weight: "50%"
+          content: "男女主的甜蜜日常/婚礼/承诺"
+        - segment: "开放结尾"
+          weight: "25%"
+          content: "暗示未来（孩子/新冒险）"
+      writing_rules:
+        - "糖要甜到齁"
+        - "给读者一个美好的结局想象"
+
+# 第四层：写作风格控制
+writing_style:
+  voice: "第三人称有限视角（以女主视角为主），偶尔切男主视角展示深情"
+  sentence_rhythm: "短句为主，情感戏可以稍长，甜的时候节奏放慢"
+
+  paragraph_rules:
+    - "对话占比50%以上"
+    - "每段不超过4行"
+    - "甜的场景要写细节：眼神、小动作、心跳"
+
+  vocabulary_level: "初中到高中水平，可以有少量文艺描写"
+
+  banned_patterns:
+    - "女主太傻太作"
+    - "男主无缘无故的冷暴力"
+    - "拖沓的误会"
+    - "过度的虐心情节"
+
+  power_techniques:
+    - name: "心跳描写"
+      usage: "甜蜜时刻"
+      example: "她的心跳漏了一拍。他明明什么都没说，但那双眼睛..."
+    - name: "霸气护妻"
+      usage: "打脸时刻"
+      example: "'她是我的人。有意见？'"
+    - name: "信息差甜"
+      usage: "暗中保护"
+      example: "女主还不知道，那份莫名其妙的好运，全是他安排的。"
+    - name: "反差萌"
+      usage: "日常互动"
+      example: "总裁大人亲自做了一碗...糊了的面。'将就吃吧。'"
+
+# 第五层：章末钩子系统
+hook_system:
+  principle: "每章结尾让读者想看下一步发展"
+
+  hook_types:
+    - type: "心动悬念"
+      pattern: "[男主的某个举动]让她心跳加速。这个男人...到底是什么人？"
+      usage_chapters: "前期章节"
+    - type: "危机降临"
+      pattern: "电话那头传来一个名字。她脸色变了——那是她最不想见到的人。"
+      usage_chapters: "中期章节"
+    - type: "身份揭露"
+      pattern: "所有人都跪下了。而他们跪拜的方向...是她的丈夫。"
+      usage_chapters: "打脸章节"
+    - type: "深情炸弹"
+      pattern: "'从一开始，我娶的就不是任何人。'他看着她，'是你。'"
+      usage_chapters: "后期章节"
+
+  structural_rule: "虐后必有糖，打脸后撒糖"

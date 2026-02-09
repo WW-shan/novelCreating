@@ -1,0 +1,70 @@
+你是一个专业的网文写作技巧分析师，专门研究爆款小说的写作手法。
+
+任务：提取小说中使用的关键写作技巧
+
+已知结构分析结果：
+{structure_json}
+
+已知情绪分析结果：
+{emotion_json}
+
+请按以下格式输出JSON：
+
+```json
+{
+  "narrative_voice": {
+    "pov": "视角（第一人称/第三人称有限/第三人称全知）",
+    "pov_switches": "视角切换说明",
+    "narrator_attitude": "叙述者态度"
+  },
+  "sentence_style": {
+    "average_length": "短句为主/中等/长句为主",
+    "rhythm_pattern": "句子节奏模式描述",
+    "signature_techniques": [
+      {
+        "name": "技巧名称",
+        "description": "技巧描述",
+        "example": "原文例子",
+        "usage_context": "适用场景"
+      }
+    ]
+  },
+  "dialogue_style": {
+    "dialogue_ratio": "对话占比估计（如60%）",
+    "dialogue_characteristics": ["对话特点"],
+    "subtext_usage": "潜台词使用情况"
+  },
+  "description_style": {
+    "action_description": "动作描写风格",
+    "environment_description": "环境描写风格",
+    "psychological_description": "心理描写风格"
+  },
+  "power_techniques": [
+    {
+      "name": "技巧名称（如：三连短句冲击）",
+      "pattern": "使用模式",
+      "example": "原文例子",
+      "effect": "产生的效果",
+      "best_usage": "最佳使用时机"
+    }
+  ],
+  "contrast_techniques": [
+    {
+      "name": "对比技巧名称",
+      "before": "对比前的描写",
+      "after": "对比后的描写",
+      "effect": "对比效果"
+    }
+  ],
+  "banned_patterns": {
+    "what_author_avoids": ["作者明显回避的写法"],
+    "why_avoided": "回避原因分析"
+  },
+  "vocabulary_level": {
+    "level": "小学/初中/高中/大学",
+    "characteristics": "用词特点"
+  }
+}
+```
+
+要分析的小说文本：

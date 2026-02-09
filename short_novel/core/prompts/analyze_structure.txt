@@ -1,0 +1,52 @@
+你是一个专业的网文结构分析师。请分析以下小说文本的结构。
+
+任务：识别并分解小说的结构元素
+
+请按以下格式输出JSON：
+
+```json
+{
+  "chapter_boundaries": [
+    {
+      "chapter_num": 1,
+      "title": "章节标题（如有）",
+      "start_marker": "章节开头的标志性文字",
+      "word_count_estimate": 1500
+    }
+  ],
+  "plot_nodes": [
+    {
+      "node_id": 1,
+      "chapter": 1,
+      "type": "入局/蓄压/爆发/转折/收尾",
+      "description": "简述这个情节点发生了什么",
+      "characters_involved": ["角色A", "角色B"]
+    }
+  ],
+  "turning_points": [
+    {
+      "position": "第X章中段",
+      "type": "身份揭露/危机/反转/打脸",
+      "description": "转折点描述",
+      "before_state": "转折前的状态",
+      "after_state": "转折后的状态"
+    }
+  ],
+  "character_archetypes": [
+    {
+      "name": "角色名",
+      "role": "protagonist/antagonist/female_lead/supporter/crowd",
+      "archetype": "角色原型描述",
+      "function": "这个角色在故事中的功能"
+    }
+  ],
+  "overall_structure": {
+    "opening_type": "开局类型（如：压抑开局、悬念开局）",
+    "middle_pattern": "中段模式（如：递进打脸、层层揭秘）",
+    "ending_type": "结局类型（如：大团圆、开放式）",
+    "total_chapters": 10
+  }
+}
+```
+
+要分析的小说文本：

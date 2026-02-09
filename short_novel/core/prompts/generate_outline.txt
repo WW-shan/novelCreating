@@ -1,0 +1,75 @@
+你是一个专业的网文大纲策划，擅长设计情节紧凑、节奏精准的短篇小说大纲。
+
+任务：根据模板和设定，创作详细的章节大纲
+
+模板信息：
+{template_yaml}
+
+角色设定：
+{setting_json}
+
+总章节数：{total_chapters}
+
+请为每一章输出详细大纲：
+
+```json
+{
+  "total_chapters": 10,
+  "chapters": [
+    {
+      "chapter_num": 1,
+      "title": "章节标题",
+      "beat_reference": "对应的beat名称（如：入局）",
+      "word_target": 1500,
+      "story_goal": "本章故事目标",
+      "emotion_target": {
+        "start": "开始情绪",
+        "build": "积累情绪",
+        "end": "结束情绪"
+      },
+      "key_scenes": [
+        {
+          "scene_num": 1,
+          "description": "场景描述",
+          "characters": ["角色A", "角色B"],
+          "conflict": "冲突点",
+          "outcome": "结果"
+        }
+      ],
+      "micro_rhythm": [
+        {
+          "segment": "冷启动",
+          "content": "具体要写什么"
+        },
+        {
+          "segment": "蓄压",
+          "content": "具体要写什么"
+        }
+      ],
+      "hook": {
+        "type": "钩子类型",
+        "content": "钩子具体内容描述"
+      },
+      "foreshadowing": {
+        "plant": ["本章埋下的伏笔"],
+        "payoff": ["本章揭示的之前伏笔"]
+      },
+      "key_dialogues": [
+        {
+          "speaker": "说话人",
+          "purpose": "这句话的目的",
+          "tone": "语气"
+        }
+      ],
+      "writing_notes": "写作时需要注意的要点"
+    }
+  ]
+}
+```
+
+大纲要求：
+1. 严格遵循模板的beat节奏
+2. 每章都要有明确的情绪曲线
+3. 伏笔要有埋有收
+4. 钩子要具体、有力
+5. 章节之间要有因果联系

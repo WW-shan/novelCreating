@@ -1,0 +1,266 @@
+# 赘婿逆袭模板
+name: "赘婿逆袭"
+category: "男频"
+sub_type: "身份流"
+tags: ["打脸", "身份反转", "爽文", "短篇连载"]
+source: "经典套路抽象"
+proven_metrics: "同类爆款完读率85%+, 追读率60%+"
+
+# 第一层：读者心理契约
+reader_contract:
+  core_fantasy: "我其实是最强的，只是你们不知道"
+  entry_emotion: "憋屈代入"
+  payoff_emotion: "碾压释放"
+  implicit_promise: "主角一定会翻盘，而且翻得很彻底"
+  reading_motivation: "看所有看不起主角的人被打脸"
+
+# 第二层：角色功能系统
+character_system:
+  protagonist:
+    archetype: "扮猪吃虎型强者"
+    inner_trait: "绝对实力 + 主动选择隐忍"
+    outer_trait: "被所有人看不起的身份（赘婿/保安/穷亲戚）"
+    golden_rule: "主角永远不主动装逼，都是被逼出手"
+
+  power_reveal_strategy:
+    method: "洋葱式剥层"
+    description: "每次只露一层，让人以为这就是底了，下次再揭一层更猛的"
+    layers_example:
+      - "原来他不是废物，他会点功夫"
+      - "原来他不只是会功夫，他是特种兵王"
+      - "原来他不只是兵王，他是最高统帅/隐世财阀"
+
+  antagonist_design:
+    structure: "打脸阶梯"
+    principle: "每个反派比上一个身份高、态度更嚣张、被打脸更惨"
+    levels:
+      - level: 1
+        type: "身边小人"
+        example: "势利眼丈母娘/小舅子/邻居"
+        attitude: "日常羞辱嘲讽"
+        defeat_method: "小露一手，对方震惊但不服"
+      - level: 2
+        type: "有背景的对手"
+        example: "富二代情敌/商业对手/地头蛇"
+        attitude: "当众羞辱，想抢女主"
+        defeat_method: "亮出部分身份，对方开始害怕"
+      - level: 3
+        type: "大Boss"
+        example: "行业大佬/家族掌权者/权贵"
+        attitude: "势在必得，不把主角放眼里"
+        defeat_method: "完全揭露身份，全场跪"
+
+  female_lead:
+    arc: "从怀疑到震惊到心疼"
+    function: "读者情绪放大器——通过她的反应放大主角的帅"
+    key_moment: "得知真相后，理解主角所有隐忍都是为了她"
+    attitude_progression:
+      - "初期：半信半疑，但选择相信"
+      - "中期：惊讶于主角能力，但仍不知全貌"
+      - "后期：震惊、心疼、后悔没早点信他"
+
+  crowd_characters:
+    function: "弹幕式反应器"
+    purpose: "替读者说出'卧槽他居然这么牛'"
+    technique: "每次反转必须有旁观者震惊反应，至少3句"
+
+# 第三层：情节节奏引擎
+plot_engine:
+  rhythm_principle: "压3放1 — 每积累3份压抑，释放1份爽感，且释放强度递增"
+  tension_curve: "锯齿上升型 — 每次释放后不回到原点，而是在更高处重新蓄压"
+
+  beats:
+    - beat_id: 1
+      name: "入局"
+      chapters: [1]
+      story_goal: "30秒内让读者代入主角的憋屈处境"
+      emotion_curve:
+        start: "平静/日常"
+        build: "压抑逐步加深"
+        end: "愤怒+好奇（他到底什么来头）"
+      micro_rhythm:
+        - segment: "冷启动"
+          weight: "10%"
+          content: "一个具体场景直接展示主角的低地位"
+          technique: "用对话和行为展示，不用叙述"
+        - segment: "蓄压"
+          weight: "50%"
+          content: "具体的羞辱事件，层层加码"
+          technique: "至少3层递进羞辱：语言嘲讽→当众羞辱→触及底线"
+          golden_rule: "羞辱必须具体、画面感强、让读者感同身受"
+        - segment: "暗线埋设"
+          weight: "15%"
+          content: "一个不经意的细节暗示主角身份"
+          technique: "如：主角接了个电话，对方称呼'老板/首长'，但被噪音盖住"
+        - segment: "钩子"
+          weight: "25%"
+          content: "一个不得不翻到下一章的理由"
+          hook_type: "危机降临型"
+          example: "就在这时，门被推开。来人看到主角的瞬间，脸色大变..."
+      writing_rules:
+        - "第一章前3段决定读者去留，必须有冲突"
+        - "禁止大段背景介绍，所有信息通过冲突场景传递"
+        - "第一章字数控制在1200-1500字，短而有力"
+
+    - beat_id: 2
+      name: "初次亮剑"
+      chapters: [2, 3]
+      story_goal: "第一次打脸，释放第一波爽感，但只揭露冰山一角"
+      emotion_curve:
+        start: "延续压抑（新的挑衅）"
+        build: "主角被逼到不得不出手的临界点"
+        peak: "反转瞬间——一招制敌"
+        end: "余韵+新悬念"
+      micro_rhythm:
+        - segment: "再次蓄压"
+          weight: "30%"
+          content: "反派变本加厉，或新的更强反派出现"
+          technique: "让读者觉得'这次真的过分了，主角你倒是反击啊'"
+        - segment: "临界触发"
+          weight: "10%"
+          content: "一个具体事件让主角不得不出手"
+          golden_rule: "主角出手必须有正当理由，不能主动找事"
+        - segment: "碾压释放"
+          weight: "30%"
+          content: "主角出手，干脆利落"
+          technique: "蓄压用50%篇幅，释放只用10%篇幅。越快越爽"
+        - segment: "震惊反应"
+          weight: "15%"
+          content: "所有人的反应"
+          technique: "至少写3个不同人的震惊反应，从不同角度放大爽感"
+        - segment: "悬念升级"
+          weight: "15%"
+          content: "暗示这只是冰山一角"
+      writing_rules:
+        - "打脸前的蓄压要足够，让读者'忍无可忍'"
+        - "打脸过程要快，三五个短句解决"
+        - "打脸后的反应要详写，放大爽感"
+
+    - beat_id: 3
+      name: "危机升级"
+      chapters: [4, 5, 6]
+      story_goal: "更大的危机，更强的对手，第二次身份揭露"
+      emotion_curve:
+        start: "短暂平静"
+        build: "新威胁出现，压力更大"
+        peak: "第二次爆发，身份层级上升"
+        end: "敌人彻底害怕，但更大boss浮现"
+      micro_rhythm:
+        - segment: "平静假象"
+          weight: "10%"
+          content: "看似问题解决了"
+        - segment: "危机升级"
+          weight: "40%"
+          content: "更有背景的对手出现，威胁女主或主角底线"
+        - segment: "第二次亮剑"
+          weight: "30%"
+          content: "展露第二层身份，碾压对手"
+        - segment: "余波"
+          weight: "20%"
+          content: "众人反应，女主对主角刮目相看"
+      writing_rules:
+        - "第二层身份要比第一层震撼得多"
+        - "女主的态度要有明显转变"
+        - "埋下终极boss的伏笔"
+
+    - beat_id: 4
+      name: "身份揭露+终极打脸"
+      chapters: [7, 8, 9]
+      story_goal: "真实身份完全曝光，所有人跪"
+      emotion_curve:
+        start: "终极危机降临"
+        build: "看似无解"
+        peak: "终极身份曝光，全场震惊"
+        end: "众叛亲离变众星捧月"
+      micro_rhythm:
+        - segment: "终极危机"
+          weight: "25%"
+          content: "大boss出手，主角被逼到绝境"
+        - segment: "真相时刻"
+          weight: "25%"
+          content: "通过某个事件/人物揭露主角真实身份"
+        - segment: "态度反转"
+          weight: "30%"
+          content: "之前所有人的态度180度转变"
+        - segment: "清算"
+          weight: "20%"
+          content: "之前欺负过主角的人下场"
+      writing_rules:
+        - "身份揭露要有仪式感"
+        - "态度反转要写得详细，越夸张越好"
+        - "女主的反应要情感化，体现她的后悔和心疼"
+
+    - beat_id: 5
+      name: "收尾"
+      chapters: [10]
+      story_goal: "圆满结局，回顾与展望"
+      emotion_curve:
+        start: "��足感"
+        build: "温馨时刻"
+        end: "意犹未尽"
+      micro_rhythm:
+        - segment: "余波处理"
+          weight: "30%"
+          content: "各角色的结局"
+        - segment: "情感升华"
+          weight: "40%"
+          content: "主角与女主的感情确认"
+        - segment: "开放结尾"
+          weight: "30%"
+          content: "暗示更大的世界，留下想象空间"
+      writing_rules:
+        - "结尾不要太匆忙"
+        - "给读者一个情绪释放的空间"
+        - "可以为续作埋伏笔"
+
+# 第四层：写作风格控制
+writing_style:
+  voice: "第三人称有限视角，偶尔切全知来展示反派心理"
+  sentence_rhythm: "短句为主，关键时刻用极短句（三五个字一行）制造冲击感"
+
+  paragraph_rules:
+    - "对话占比60%以上，大段叙述必须打碎"
+    - "每段不超过3行，保持手机阅读体验"
+    - "动作描写用短句连发：他抬手。一拳。对方飞出三米。"
+
+  vocabulary_level: "初中水平用词，拒绝文艺腔"
+
+  banned_patterns:
+    - "大段心理描写（用行为暗示代替）"
+    - "形容词堆砌"
+    - "生僻字和文言句式"
+    - "说教式旁白"
+
+  power_techniques:
+    - name: "三连短句冲击"
+      usage: "打脸/反转的关键瞬间"
+      example: "他出手了。快得看不见。一拳。"
+    - name: "对比蒙太奇"
+      usage: "打脸前后的态度反转"
+      example: "五分钟前：'就你？也配？' 五分钟后：'大...大人，小的有眼不识泰山！'"
+    - name: "读者优越感制造"
+      usage: "暗示主角身份时"
+      example: "众人哄笑。没人注意到，主角手腕上那块表，全球只有三块。"
+    - name: "弹幕式群众反应"
+      usage: "打脸后放大爽感"
+      example: "'卧槽！' '这...这怎么可能！' '他到底是什么人！'"
+
+# 第五层：章末钩子系统
+hook_system:
+  principle: "每章最后一句话必须让读者无法停下"
+
+  hook_types:
+    - type: "身份悬念"
+      pattern: "[某个有权势的人] 看到 [主角/主角的某个物品]，脸色突变：'你...你是...'"
+      usage_chapters: "前期章节"
+    - type: "危机突降"
+      pattern: "就在一切看似圆满时，[主角的手机/门外] 传来一个消息/人——[留白]"
+      usage_chapters: "中期章节"
+    - type: "实力悬念"
+      pattern: "[主角做了一件不可思议的事]，所有人呆住了。而他只是笑了笑：'这只是...随手而已。'"
+      usage_chapters: "打脸章节"
+    - type: "情感炸弹"
+      pattern: "[女主/关键人物] 终于知道了真相。她的眼泪止不住地流：'原来...这些年...'"
+      usage_chapters: "后期章节"
+
+  structural_rule: "连续两章不能用同一类型钩子"

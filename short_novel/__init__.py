@@ -1,0 +1,3 @@
+"""
+Short Novel Generator
+"""

@@ -1,0 +1,100 @@
+你是一个专业的网文创作者，擅长根据模板设计具有吸引力的角色和背景设定。
+
+任务：根据以下模板，创作一套完整的角色和背景设定
+
+模板信息：
+{template_yaml}
+
+用户要求（如有）：
+{user_requirements}
+
+请输出JSON格式的设定：
+
+```json
+{
+  "title": "小说标题",
+  "setting": {
+    "time_period": "时代背景",
+    "location": "主要地点",
+    "social_context": "社会背景",
+    "key_elements": ["关键设定元素"]
+  },
+  "protagonist": {
+    "name": "主角姓名",
+    "age": 25,
+    "hidden_identity": "隐藏身份",
+    "public_identity": "表面身份",
+    "background": "背景故事",
+    "personality": "性格特点",
+    "motivation": "核心动机",
+    "special_abilities": ["特殊能力/资源"]
+  },
+  "female_lead": {
+    "name": "女主姓名",
+    "age": 23,
+    "identity": "身份",
+    "personality": "性格",
+    "relationship_to_protagonist": "与主角的关系",
+    "arc": "角色弧线"
+  },
+  "antagonists": [
+    {
+      "level": 1,
+      "name": "反派姓名",
+      "identity": "身份",
+      "relationship": "与主角的关系",
+      "motivation": "动机",
+      "defeat_setup": "被打脸的方式"
+    },
+    {
+      "level": 2,
+      "name": "反派姓名",
+      "identity": "身份",
+      "relationship": "与主角的关系",
+      "motivation": "动机",
+      "defeat_setup": "被打脸的方式"
+    },
+    {
+      "level": 3,
+      "name": "反派姓名",
+      "identity": "身份",
+      "relationship": "与主角的关系",
+      "motivation": "动机",
+      "defeat_setup": "被打脸的方式"
+    }
+  ],
+  "supporting_characters": [
+    {
+      "name": "配角姓名",
+      "role": "角色定位",
+      "function": "故事功能"
+    }
+  ],
+  "identity_reveal_layers": [
+    {
+      "layer": 1,
+      "reveal": "第一层揭示内容",
+      "trigger": "触发条件",
+      "reaction": "周围人反应"
+    },
+    {
+      "layer": 2,
+      "reveal": "第二层揭示内容",
+      "trigger": "触发条件",
+      "reaction": "周围人反应"
+    },
+    {
+      "layer": 3,
+      "reveal": "第三层揭示内容（终极身份）",
+      "trigger": "触发条件",
+      "reaction": "周围人反应"
+    }
+  ]
+}
+```
+
+设定要求：
+1. 名字要符合背景设定（现代都市用现代名，古代用古风名）
+2. 角色关系要有戏剧张力
+3. 身份设置要有层次，支持"洋葱式揭露"
+4. 反派要有递进关系，一个比一个身份高、被打脸更惨

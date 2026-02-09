@@ -1,0 +1,59 @@
+你是一个专业的读者情绪分析师，专门研究网文如何操控读者情绪。
+
+任务：分析小说中的情绪曲线和节奏控制
+
+已知结构分析结果：
+{structure_json}
+
+请按以下格式输出JSON：
+
+```json
+{
+  "overall_emotion_arc": {
+    "start_emotion": "开篇情绪（如：代入憋屈）",
+    "peak_emotion": "高潮情绪（如：爽感释放）",
+    "end_emotion": "结尾情绪（如：满足回味）",
+    "arc_type": "曲线类型（如：锯齿上升、波浪式）"
+  },
+  "chapter_emotions": [
+    {
+      "chapter": 1,
+      "entry_emotion": "进入本章时读者情绪",
+      "build_emotion": "本章积累的情绪",
+      "exit_emotion": "离开本章时读者情绪",
+      "tension_level": 7,
+      "release_level": 3,
+      "key_emotion_moments": [
+        {
+          "position": "前段/中段/后段",
+          "emotion": "具体情绪描述",
+          "trigger": "触发这个情绪的具体事件"
+        }
+      ]
+    }
+  ],
+  "rhythm_pattern": {
+    "pressure_release_ratio": "压抑与释放的比例（如3:1）",
+    "pressure_techniques": ["具体压抑技巧"],
+    "release_techniques": ["具体释放技巧"],
+    "pacing_notes": "节奏特点说明"
+  },
+  "hook_analysis": [
+    {
+      "chapter": 1,
+      "hook_type": "钩子类型（身份悬念/危机突降/实力悬念/情感炸弹）",
+      "hook_content": "钩子的具体内容",
+      "hook_strength": 8,
+      "why_effective": "为什么这个钩子有效"
+    }
+  ],
+  "reader_psychology": {
+    "core_fantasy": "读者的核心幻想是什么",
+    "identification_point": "读者在哪个点开始代入主角",
+    "payoff_moments": ["主要爽点时刻"],
+    "reading_motivation": "读者继续读下去的动力"
+  }
+}
+```
+
+要分析的小说文本：

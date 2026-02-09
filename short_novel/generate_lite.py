@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-轻量级短篇小说生成器 - 分段生成，节省API调用
+轻量级短篇小说生成器 - 分10段生成，每段约1000字
+每次API调用: 输入<500 tokens, 输出~1000字
 """
 import sys
 import random
@@ -20,212 +21,156 @@ FEMALE_NAMES = [
     "苏晴", "林婉", "陈雨", "王璇", "李婷", "赵雪", "周琳", "吴梦",
     "郑薇", "孙萌", "刘诗", "杨柳", "黄莺", "周瑶", "徐静", "马悦"
 ]
-SURNAMES = ["陈", "林", "张", "王", "李", "赵", "周", "吴", "郑", "孙", "刘", "杨"]
+
+# 10段剧情模板（赘婿逆袭类）
+PLOT_BEATS = [
+    "开局：主角在岳父家被羞辱，众人嘲笑他是废物赘婿",
+    "蓄压：小舅子当众羞辱主角，女主心疼但无奈",
+    "第一次反转：有人认出主角身份的蛛丝马迹，主角掩饰",
+    "危机：富二代出现追求女主，威胁主角",
+    "小爆发：主角小露一手，震惊众人，但没暴露身份",
+    "升级：更大的反派出现，要对付主角和女主",
+    "逼到绝境：主角被逼到不得不出手的境地",
+    "身份初露：主角展现部分实力，反派开始害怕",
+    "全面爆发：主角真实身份曝光，全场震惊跪拜",
+    "结局：所有人态度反转，主角和女主甜蜜收尾",
+]
+
+PLOT_BEATS_FEMALE = [
+    "开局：女主被迫闪婚，嫁给传说中的'废物'男主",
+    "新婚：婆家人嫌弃，男主却偷偷对她好",
+    "暗中保护：女主遇到麻烦，男主暗中帮忙解决",
+    "心动：女主发现男主的不同寻常，心跳加速",
+    "情敌出现：白莲花出现，想抢走男主",
+    "误会：女主误解男主，两人冷战",
+    "危机：女主被人陷害，处境危险",
+    "男主护妻：男主霸气出手，打脸所有人",
+    "身份曝光：男主真实身份揭露，原来是隐藏大佬",
+    "甜蜜结局：所有人后悔，男女主甜蜜撒糖",
+]
 
 
 def random_names():
     """生成随机人名"""
     male = random.choice(MALE_NAMES)
     female = random.choice(FEMALE_NAMES)
-    # 确保姓不同
     while female[0] == male[0]:
         female = random.choice(FEMALE_NAMES)
-    villain = random.choice(SURNAMES) + random.choice(["总", "董", "少", "公子"])
-    return {"male": male, "female": female, "villain": villain}
+    return {"male": male, "female": female}
 
 
-def generate_simple_outline(genre: str, names: dict) -> str:
-    """生成简单大纲 - 轻量调用"""
-    prompt = f"""为一篇1万字的短篇网文生成简要大纲。
-
-类型: {genre}
-主角: {names['male']}
-女主: {names['female']}
-反派: {names['villain']}
-
-要求:
-- 分5章，每章约2000字
-- 只输出每章的一句话概要
-- 格式: 第X章: 概要
-
-直接输出，不要其他内容:"""
-
-    return generate(
-        system_prompt="你是网文大纲师。简洁输出。",
-        user_prompt=prompt,
-        max_tokens=500,
-    )
-
-
-def generate_chapter_lite(
-    chapter_num: int,
-    total_chapters: int,
-    outline: str,
+def generate_segment(
+    segment_num: int,
+    plot_beat: str,
     names: dict,
-    genre: str,
-    previous_summary: str = "",
+    previous_ending: str = "",
 ) -> str:
-    """生成单章 - 控制在1000字左右"""
+    """
+    生成一个段落（约1000字）
+    输入prompt非常短，输出控制在1000字
+    """
+    prompt = f"""写第{segment_num}/10段，1000字。
 
-    prompt = f"""写第{chapter_num}章（共{total_chapters}章），约1000-1200字。
+主角:{names['male']} 女主:{names['female']}
+本段剧情:{plot_beat}
+上段结尾:{previous_ending if previous_ending else '无，这是开头'}
 
-【类型】{genre}
-【主角】{names['male']}（隐藏身份的强者）
-【女主】{names['female']}（主角的妻子/女友）
-【反派】{names['villain']}
-
-【大纲】
-{outline}
-
-【前文摘要】
-{previous_summary if previous_summary else "这是开头"}
-
-【要求】
-1. 对话占60%以上
-2. 每段不超过3行
-3. 结尾留钩子
-4. 字数1000-1200字
-5. 直接写正文，不要标题
-
-开始写:"""
+要求:对话多，每段3行内，结尾留悬念。直接写正文:"""
 
     return generate(
-        system_prompt="你是番茄小说写手。写爽文，节奏快，对话多。直接输出正文。",
+        system_prompt="番茄爽文写手。只输出正文，1000字。",
         user_prompt=prompt,
-        max_tokens=2000,
-    )
-
-
-def summarize_chapter(chapter_text: str) -> str:
-    """总结章节要点 - 用于传递给下一章"""
-    prompt = f"""用2-3句话总结这章的关键情节:
-
-{chapter_text[:1500]}
-
-只输出总结:"""
-
-    return generate(
-        system_prompt="简洁总结。",
-        user_prompt=prompt,
-        max_tokens=200,
+        max_tokens=1800,  # 约1000-1200字
     )
 
 
 def main():
     print("=" * 50)
-    print("  轻量级短篇小说生成器")
-    print("  (分章生成，节省API)")
+    print("  轻量级生成器 (10段×1000字)")
     print("=" * 50)
 
     # 选择类型
-    print("\n选择小说类型:")
+    print("\n选择类型:")
     print("  1. 赘婿逆袭 (男频)")
     print("  2. 闪婚总裁 (女频)")
-    print("  3. 自定义")
 
-    choice = input("\n选择 [1/2/3]: ").strip()
+    choice = input("\n选择 [1/2]: ").strip()
+    plot_beats = PLOT_BEATS_FEMALE if choice == "2" else PLOT_BEATS
+    genre = "闪婚总裁" if choice == "2" else "赘婿逆袭"
 
-    if choice == "1":
-        genre = "赘婿逆袭/打脸爽文"
-    elif choice == "2":
-        genre = "闪婚甜宠/霸总文"
-    else:
-        genre = input("输入类型: ").strip() or "都市爽文"
-
-    # 生成随机人名
+    # 随机人名
     names = random_names()
-    print(f"\n随机角色: 主角={names['male']}, 女主={names['female']}, 反派={names['villain']}")
+    print(f"\n角色: {names['male']}(主角), {names['female']}(女主)")
 
-    change = input("是否更换人名? [y/N]: ").strip().lower()
+    change = input("换名字? [y/N]: ").strip().lower()
     if change == 'y':
-        names['male'] = input(f"主角名 [{names['male']}]: ").strip() or names['male']
-        names['female'] = input(f"女主名 [{names['female']}]: ").strip() or names['female']
-        names['villain'] = input(f"反派名 [{names['villain']}]: ").strip() or names['villain']
-
-    total_chapters = 5
+        names['male'] = input(f"主角[{names['male']}]: ").strip() or names['male']
+        names['female'] = input(f"女主[{names['female']}]: ").strip() or names['female']
 
     # 创建输出目录
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = Path(__file__).parent / "stories" / f"{genre[:4]}_{timestamp}"
+    output_dir = Path(__file__).parent / "stories" / f"{genre}_{timestamp}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n输出目录: {output_dir}")
-    print("\n" + "=" * 50)
-    print("开始生成...")
-    print("=" * 50)
+    print(f"\n保存到: {output_dir}")
+    print("\n剧情大纲:")
+    for i, beat in enumerate(plot_beats, 1):
+        print(f"  {i}. {beat}")
 
-    # Step 1: 生成大纲
-    print("\n[1/6] 生成大纲...")
-    try:
-        outline = generate_simple_outline(genre, names)
-        print(outline)
-        (output_dir / "outline.txt").write_text(outline, encoding="utf-8")
-    except Exception as e:
-        print(f"大纲生成失败: {e}")
-        return
+    input("\n按回车开始生成...")
 
-    input("\n按回车继续生成章节...")
+    # 逐段生成
+    segments = []
+    previous_ending = ""
 
-    # Step 2-6: 逐章生成
-    chapters = []
-    previous_summary = ""
-
-    for i in range(1, total_chapters + 1):
-        print(f"\n[{i+1}/6] 生成第{i}章...")
+    for i in range(1, 11):
+        print(f"\n{'='*30}")
+        print(f"生成第 {i}/10 段: {plot_beats[i-1][:20]}...")
+        print("=" * 30)
 
         try:
-            chapter = generate_chapter_lite(
-                chapter_num=i,
-                total_chapters=total_chapters,
-                outline=outline,
+            segment = generate_segment(
+                segment_num=i,
+                plot_beat=plot_beats[i-1],
                 names=names,
-                genre=genre,
-                previous_summary=previous_summary,
+                previous_ending=previous_ending,
             )
 
-            # 保存章节
-            chapter_file = output_dir / f"chapter_{i:02d}.txt"
-            chapter_file.write_text(f"第{i}章\n\n{chapter}", encoding="utf-8")
-            chapters.append(chapter)
+            # 保存
+            seg_file = output_dir / f"segment_{i:02d}.txt"
+            seg_file.write_text(segment, encoding="utf-8")
+            segments.append(segment)
 
-            # 显示预览
-            preview = chapter[:200] + "..." if len(chapter) > 200 else chapter
-            print(f"\n--- 预览 ---\n{preview}\n--- 字数: {len(chapter)} ---")
+            # 提取结尾作为下一段的上文
+            previous_ending = segment[-200:] if len(segment) > 200 else segment
 
-            # 生成摘要给下一章
-            if i < total_chapters:
-                print("生成摘要...")
-                previous_summary = summarize_chapter(chapter)
+            # 预览
+            print(f"\n{segment[:300]}...")
+            print(f"\n[字数: {len(segment)}]")
 
-            # 确认继续
-            if i < total_chapters:
-                cont = input("\n继续下一章? [Y/n]: ").strip().lower()
+            # 确认
+            if i < 10:
+                cont = input("\n继续? [Y/n]: ").strip().lower()
                 if cont == 'n':
-                    print("已暂停。章节已保存。")
                     break
 
         except Exception as e:
-            print(f"第{i}章生成失败: {e}")
-            cont = input("重试? [Y/n]: ").strip().lower()
-            if cont != 'n':
-                i -= 1  # 重试当前章
+            print(f"\n生成失败: {e}")
+            retry = input("重试? [Y/n]: ").strip().lower()
+            if retry != 'n':
+                continue
             else:
                 break
 
-    # 合并完整小说
-    if chapters:
-        full_novel = ""
-        for i, ch in enumerate(chapters, 1):
-            full_novel += f"第{i}章\n\n{ch}\n\n{'='*30}\n\n"
+    # 合并
+    if segments:
+        full = "\n\n---\n\n".join(segments)
+        (output_dir / "full_novel.txt").write_text(full, encoding="utf-8")
 
-        (output_dir / "full_novel.txt").write_text(full_novel, encoding="utf-8")
-
-        total_words = sum(len(ch) for ch in chapters)
+        total = sum(len(s) for s in segments)
         print("\n" + "=" * 50)
-        print(f"  生成完成!")
-        print(f"  章节数: {len(chapters)}")
-        print(f"  总字数: {total_words}")
-        print(f"  保存位置: {output_dir}")
+        print(f"完成! 共 {len(segments)} 段, {total} 字")
+        print(f"文件: {output_dir / 'full_novel.txt'}")
         print("=" * 50)
 
 

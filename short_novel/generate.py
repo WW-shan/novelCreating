@@ -162,13 +162,12 @@ def generate_chapters(
         chapter_path = story_dir / "chapters" / f"chapter_{chapter_num:02d}.md"
         chapter_path.write_text(chapter_text, encoding="utf-8")
 
-        # Show preview
+        # Show full text
         print("\n" + "-" * 40)
-        preview = chapter_text[:500] + "..." if len(chapter_text) > 500 else chapter_text
-        print(preview)
+        print(chapter_text)
         print("-" * 40)
-        print(f"\n完整内容已保存至：{chapter_path}")
-        print(f"字数：{len(chapter_text)} 字")
+        print(f"\n字数：{len(chapter_text)} 字")
+        print(f"已保存至：{chapter_path}")
 
         # User review
         while True:
@@ -192,10 +191,10 @@ def generate_chapters(
                     template, setting, outline, chapter_num, chapters
                 )
                 chapter_path.write_text(chapter_text, encoding="utf-8")
-                preview = chapter_text[:500] + "..."
                 print("\n" + "-" * 40)
-                print(preview)
+                print(chapter_text)
                 print("-" * 40)
+                print(f"\n字数：{len(chapter_text)} 字")
 
             elif action == "3":
                 feedback = input("\n请输入修改意见: ").strip()
@@ -206,10 +205,10 @@ def generate_chapters(
                         chapter_text, feedback, template, setting, chapter_outline
                     )
                     chapter_path.write_text(chapter_text, encoding="utf-8")
-                    preview = chapter_text[:500] + "..."
                     print("\n" + "-" * 40)
-                    print(preview)
+                    print(chapter_text)
                     print("-" * 40)
+                    print(f"\n字数：{len(chapter_text)} 字")
 
             elif action == "4":
                 input("\n请编辑文件后按回车继续...")

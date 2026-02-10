@@ -70,15 +70,8 @@ def generate_setting(
     # 获取随机角色名
     names = get_random_names()
 
-    # 简化模板，只取关键信息
-    simplified_template = {
-        "name": template.get("name", ""),
-        "category": template.get("category", ""),
-        "reader_contract": template.get("reader_contract", {}),
-        "character_system": template.get("character_system", {}),
-    }
-
-    template_yaml = yaml.dump(simplified_template, allow_unicode=True, default_flow_style=False)
+    # 完整模板信息
+    template_yaml = yaml.dump(template, allow_unicode=True, default_flow_style=False)
 
     prompt = f"""根据以下模板生成角色设定。
 
@@ -125,24 +118,16 @@ def generate_outline(
     Returns:
         Outline as dict with chapters list
     """
-    # 简化设定信息
-    setting_brief = {
-        "title": setting.get("title", ""),
-        "protagonist": setting.get("protagonist", {}),
-        "female_lead": setting.get("female_lead", {}),
-    }
-
-    # 提取节拍信息
-    beats = template.get("plot_engine", {}).get("beats", [])
-    beats_brief = [{"name": b.get("name", ""), "goal": b.get("story_goal", "")} for b in beats]
+    template_yaml = yaml.dump(template, allow_unicode=True, default_flow_style=False)
+    setting_json = json.dumps(setting, ensure_ascii=False, indent=2)
 
     prompt = f"""为小说生成{total_chapters}章大纲。
 
-角色：
-{json.dumps(setting_brief, ensure_ascii=False)}
+模板：
+{template_yaml}
 
-节拍参考：
-{json.dumps(beats_brief, ensure_ascii=False)}
+角色设定：
+{setting_json}
 
 输出JSON格式：
 {{"chapters": [
@@ -188,10 +173,9 @@ def generate_chapter(
         default_flow_style=False,
     )
 
-    # Get previous chapter ending for context
+    # Full previous chapters for context (quality first)
     if previous_chapters:
-        last_chapter = previous_chapters[-1]
-        prev_context = last_chapter[-500:] if len(last_chapter) > 500 else last_chapter
+        prev_context = "\n\n---\n\n".join(previous_chapters)
     else:
         prev_context = "（这是第一章开头）"
 
@@ -203,14 +187,17 @@ def generate_chapter(
 === 角色设定 ===
 {json.dumps(setting, ensure_ascii=False, indent=2)}
 
+=== 完整大纲 ===
+{json.dumps(outline, ensure_ascii=False, indent=2)}
+
 === 本章大纲 ===
 {json.dumps(chapter_outline, ensure_ascii=False, indent=2)}
 
-=== 上一章结尾 ===
+=== 前文内容 ===
 {prev_context}
 
 === 任务 ===
-写完整的一章，约1000字。
+写完整的第{chapter_num}章，约1000字。
 
 要求：
 1. 直接输出正文，不要标题或解释

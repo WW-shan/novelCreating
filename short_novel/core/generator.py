@@ -12,9 +12,8 @@ from .ai_client import generate
 
 # Direct paths to avoid import issues
 PROMPTS_DIR = Path(__file__).parent / "prompts"
-MAX_TOKENS_PER_PART = 1500  # 每个部分限制输出，防止代理超时
-MAX_TOKENS_ANALYSIS = 4000  # 分析类也限制一下
-PARTS_PER_CHAPTER = 2  # 每章分2部分生成
+MAX_TOKENS_PER_CHAPTER = 1800  # 约1000字输出
+MAX_TOKENS_ANALYSIS = 4000
 
 # 随机人名库
 MALE_NAMES = ["陈默", "林风", "张远", "王浩", "李明", "赵阳", "周毅", "吴凡", "郑宇", "孙强", "刘峰", "杨磊"]
@@ -147,7 +146,7 @@ def generate_outline(
 
 输出JSON格式：
 {{"chapters": [
-  {{"chapter_num": 1, "title": "标题", "story_goal": "本章目标", "word_target": 1500}},
+  {{"chapter_num": 1, "title": "标题", "story_goal": "本章目标", "word_target": 1000}},
   ...
 ]}}
 
@@ -170,17 +169,7 @@ def generate_chapter(
     previous_chapters: list[str],
 ) -> str:
     """
-    Generate a single chapter in multiple parts to prevent timeout.
-
-    Args:
-        template: The plot template
-        setting: Character and setting configuration
-        outline: Full outline
-        chapter_num: Chapter number to generate (1-indexed)
-        previous_chapters: List of all previous chapter texts
-
-    Returns:
-        Generated chapter text (combined from all parts)
+    Generate a single chapter (~1000 words).
     """
     # Get this chapter's outline
     chapter_outline = None
@@ -199,37 +188,14 @@ def generate_chapter(
         default_flow_style=False,
     )
 
-    # Get previous chapter summary (not full text, to save tokens)
+    # Get previous chapter ending for context
     if previous_chapters:
-        # Only use last chapter's ending for context
         last_chapter = previous_chapters[-1]
         prev_context = last_chapter[-500:] if len(last_chapter) > 500 else last_chapter
     else:
         prev_context = "（这是第一章开头）"
 
-    word_target = chapter_outline.get("word_target", 1500)
-    words_per_part = word_target // PARTS_PER_CHAPTER
-
-    # Generate chapter in parts
-    chapter_parts = []
-
-    for part_num in range(1, PARTS_PER_CHAPTER + 1):
-        print(f"    生成第{chapter_num}章 ({part_num}/{PARTS_PER_CHAPTER})...")
-
-        if part_num == 1:
-            # First part - use previous chapter context
-            part_context = f"上一章结尾：\n{prev_context}"
-            part_instruction = f"写本章的开头部分，约{words_per_part}字。建立场景，引入冲突。"
-        else:
-            # Subsequent parts - use previous part
-            prev_part = chapter_parts[-1]
-            part_context = f"本章前文：\n{prev_part[-600:]}"
-            if part_num == PARTS_PER_CHAPTER:
-                part_instruction = f"写本章的结尾部分，约{words_per_part}字。推向高潮，留下钩子。"
-            else:
-                part_instruction = f"继续写本章中间部分，约{words_per_part}字。发展冲突，推进剧情。"
-
-        prompt = f"""你是顶级网文写手，正在写一部番茄小说。
+    prompt = f"""你是顶级网文写手，正在写一部番茄小说。
 
 === 写作风格要求 ===
 {writing_style}
@@ -240,31 +206,29 @@ def generate_chapter(
 === 本章大纲 ===
 {json.dumps(chapter_outline, ensure_ascii=False, indent=2)}
 
-=== 上下文 ===
-{part_context}
+=== 上一章结尾 ===
+{prev_context}
 
 === 任务 ===
-{part_instruction}
+写完整的一章，约1000字。
 
 要求：
 1. 直接输出正文，不要标题或解释
 2. 对话占比60%以上
 3. 每段不超过3行
-4. 与前文保持人名、情节一致
+4. 结尾留钩子
+5. 与前文保持人名、情节一致
+6. 严格控制在1000字左右
 
 现在开始写："""
 
-        response = generate(
-            system_prompt="你是番茄小说签约作者。直接输出小说正文，不要任何解释或标题。",
-            user_prompt=prompt,
-            max_tokens=MAX_TOKENS_PER_PART,
-        )
+    response = generate(
+        system_prompt="你是番茄小说签约作者。直接输出小说正文，不要任何解释或标题。字数严格控制在1000字左右。",
+        user_prompt=prompt,
+        max_tokens=MAX_TOKENS_PER_CHAPTER,
+    )
 
-        chapter_parts.append(response.strip())
-
-    # Combine all parts
-    full_chapter = "\n\n".join(chapter_parts)
-    return full_chapter
+    return response.strip()
 
 
 def revise_chapter(
@@ -274,62 +238,23 @@ def revise_chapter(
     setting: dict,
     chapter_outline: dict,
 ) -> str:
-    """
-    Revise a chapter based on user feedback.
-    Split into parts to prevent timeout.
-    """
-    # 章节太长时分段修改
-    if len(chapter_text) > 1500:
-        mid = len(chapter_text) // 2
-        # 找到中间的段落分隔点
-        split_point = chapter_text.rfind("\n\n", 0, mid + 200)
-        if split_point == -1:
-            split_point = mid
-
-        part1 = chapter_text[:split_point]
-        part2 = chapter_text[split_point:]
-
-        # 修改第一部分
-        print("    修改前半部分...")
-        revised1 = _revise_part(part1, feedback, setting, chapter_outline, "前半部分")
-
-        # 修改第二部分
-        print("    修改后半部分...")
-        revised2 = _revise_part(part2, feedback, setting, chapter_outline, "后半部分", revised1[-300:])
-
-        return revised1 + "\n\n" + revised2
-    else:
-        return _revise_part(chapter_text, feedback, setting, chapter_outline, "全文")
-
-
-def _revise_part(
-    text: str,
-    feedback: str,
-    setting: dict,
-    chapter_outline: dict,
-    part_name: str,
-    prev_context: str = "",
-) -> str:
-    """Revise a single part of chapter."""
-    context_info = f"\n前文结尾：{prev_context}" if prev_context else ""
-
-    prompt = f"""修改以下小说片段（{part_name}）。
+    """Revise a chapter based on user feedback."""
+    prompt = f"""修改以下小说章节。
 
 角色：主角={setting.get('protagonist', {}).get('name', '主角')}
 本章目标：{chapter_outline.get('story_goal', '')}
-{context_info}
 
 原文：
-{text}
+{chapter_text}
 
 修改要求：{feedback}
 
-直接输出修改后的正文："""
+直接输出修改后的完整正文，约1000字："""
 
     response = generate(
-        system_prompt="网文写手。直接输出修改后的正文，不要解释。",
+        system_prompt="网文写手。直接输出修改后的正文，不要解释。字数控制在1000字。",
         user_prompt=prompt,
-        max_tokens=MAX_TOKENS_PER_PART,
+        max_tokens=MAX_TOKENS_PER_CHAPTER,
     )
 
     return response.strip()
